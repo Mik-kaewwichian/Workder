@@ -1,0 +1,21 @@
+{
+  "name": "workder-monorepo",
+  "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": ["@nestjs/core", "@prisma/client", "@prisma/engines", "prisma", "sharp"]
+  },
+  "scripts": {
+    "dev:admin:web": "pnpm --dir Admin/FRONTEND/WEB dev",
+    "dev:user:web": "pnpm --dir User/FRONTEND/WEB dev",
+    "dev:admin:api": "pnpm --dir Admin/BACKEND/API dev",
+    "dev:user:api": "pnpm --dir User/BACKEND/API dev",
+    "build:admin:web": "pnpm --dir Admin/FRONTEND/WEB build",
+    "build:user:web": "pnpm --dir User/FRONTEND/WEB build",
+    "build:admin:api": "pnpm --dir Admin/BACKEND/API build",
+    "build:user:api": "pnpm --dir User/BACKEND/API build",
+    "db:admin:push": "pnpm --dir Admin/BACKEND/DB push",
+    "db:user:push": "pnpm --dir User/BACKEND/DB push",
+    "db:admin:seed": "pnpm --dir Admin/BACKEND/DB seed",
+    "db:user:seed": "pnpm --dir User/BACKEND/DB seed"
+  }
+}

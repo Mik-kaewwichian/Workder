@@ -1,0 +1,16 @@
+{
+  "B2C": {
+    "starter": 99,
+    "standard": 239,
+    "pro": 599
+  },
+  "B2B": {
+    "starter": 7990,
+    "standard": 9990,
+    "pro": 29990
+  },
+  "B2G": {
+    "starter": 50000,
+    "standard": 150000
+  }
+}

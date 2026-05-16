@@ -1,0 +1,10 @@
+packages:
+  - "Admin/FRONTEND/WEB"
+  - "Admin/BACKEND/API"
+  - "Admin/BACKEND/DB"
+  - "Admin/WORKER"
+  - "User/FRONTEND/WEB"
+  - "User/FRONTEND/MOBILE"
+  - "User/BACKEND/API"
+  - "User/BACKEND/DB"
+  - "User/BACKEND/WORKER"

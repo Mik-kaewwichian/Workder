@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  phone        String? @unique
+  email        String? @unique
+  role         String  @default("user")
+  passwordHash String?
+
+  // Profile fields
+  firstName String?
+  lastName  String?
+  idCard    String?
+
+  // Address details
+  address     String?
+  province    String?
+  district    String?
+  subDistrict String?
+  zipCode     String?
+
+  // KYC Info
+  birthDate        DateTime?
+  occupation       String?
+  income           Int?
+  education        String?
+  certificates     String?
+  idCardFront      String?
+  idCardBack       String?
+  idCardSelfie     String?
+  faceScan         String?
+  profileCompleted Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobsPosted Job[] @relation("JobsPosted")
+}
+
+model Job {
+  id          Int      @id @default(autoincrement())
+  title       String
+  type        String // urgent | parttime | fulltime | safezone
+  status      String   @default("open")
+  payAmount   Int
+  lat         Float?
+  lng         Float?
+  safeZoneReq Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  postedById Int?
+  postedBy   User? @relation("JobsPosted", fields: [postedById], references: [id])
+}

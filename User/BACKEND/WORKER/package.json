@@ -1,0 +1,9 @@
+{
+  "name": "@workder/worker",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"run worker\"",
+    "build": "echo \"build worker\"",
+    "start": "echo \"node dist/main.js\""
+  }
+}

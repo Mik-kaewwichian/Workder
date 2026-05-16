@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@layer base {
+  html,
+  body,
+  div,
+  span,
+  p,
+  a,
+  button,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'font', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans" !important;
+  }
+
+  html,
+  body {
+    height: 100%;
+    font-size: 18px;
+    line-height: 1.6;
+  }
+}
+
+/* Admin panel uses slightly larger text for readability */
+.admin-layout {
+    font-size: 18px;
+}
+
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.animate-marquee {
+    animation: marquee 40s linear infinite;
+}
+
+.pause-on-hover:hover {
+    animation-play-state: paused;
+}
+
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes floatDelayed {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+
+  50% {
+    transform: translateY(8px) translateX(-4px);
+  }
+}
+
+.float-slow {
+  animation: floatSlow 7s ease-in-out infinite;
+}
+
+.float-delayed {
+  animation: floatDelayed 8s ease-in-out infinite;
+}
+
+.ambient-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 34%);
+  background-size: 26px 26px, 26px 26px, 100% 100%;
+  background-position: center;
+}
+
+@keyframes gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 4s ease infinite;
+  background-size: 300% 300%;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease both;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

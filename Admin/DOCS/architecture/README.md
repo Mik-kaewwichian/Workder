@@ -1,0 +1,3 @@
+# Admin Architecture
+
+ภาพรวมสถาปัตยกรรมของระบบ Admin.

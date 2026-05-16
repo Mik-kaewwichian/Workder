@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"c:\\\\Cluade_Workder\\\\WORKDER-main\\\\Admin\\\\FRONTEND\\\\WEB\"; pnpm dev' -WindowStyle Normal)",
+      "PowerShell(Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"c:\\\\Cluade_Workder\\\\WORKDER-main\\\\User\\\\FRONTEND\\\\WEB\"; pnpm dev' -WindowStyle Normal)",
+      "Bash(npx tsc *)",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Cluade_Workder\\\\WORKDER-main\\\\User\\\\FRONTEND\\\\WEB\\\\src\\\\app\\\\workboard\")"
+    ]
+  }
+}

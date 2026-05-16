@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  phone String? @unique
+  email String? @unique
+  role  String  @default("user")
+  passwordHash String?
+
+  // Profile fields
+  firstName String?
+  lastName  String?
+  idCard    String?
+
+  // Address details
+  address     String?
+  province    String?
+  district    String?
+  subDistrict String?
+  zipCode     String?
+
+  // KYC Info
+  birthDate        DateTime?
+  occupation       String?
+  income           Int?
+  education        String?
+  certificates     String?
+  idCardFront      String?
+  idCardBack       String?
+  idCardSelfie     String?
+  faceScan         String?
+  profileCompleted Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobsPosted            Job[]         @relation("JobsPosted")
+  applicationsSubmitted Application[] @relation("WorkerApplications")
+  reviewsWritten        Review[]      @relation("ReviewsWritten")
+  workerPosts           WorkerPost[]  @relation("WorkerPosts")
+
+  conversationsAsEmployer Conversation[] @relation("ConversationsAsEmployer")
+  conversationsAsWorker   Conversation[] @relation("ConversationsAsWorker")
+  messagesSent            Message[]      @relation("MessagesSent")
+}
+
+model Job {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  type        String // urgent | parttime | fulltime | safezone
+  status      String   @default("open")
+  payAmount   Int
+  lat         Float?
+  lng         Float?
+  safeZoneReq Boolean  @default(false)
+  image1      String?
+  image2      String?
+  image3      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  postedById Int?
+  postedBy   User? @relation("JobsPosted", fields: [postedById], references: [id])
+
+  applications  Application[]
+  reviews       Review[]
+  conversations Conversation[]
+}
+
+model Application {
+  id        Int      @id @default(autoincrement())
+  jobId     Int
+  workerId  Int
+  status    String   @default("pending") // pending | accepted | rejected
+  message   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  job    Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  worker User @relation("WorkerApplications", fields: [workerId], references: [id])
+
+  @@unique([jobId, workerId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  jobId     Int
+  authorId  Int
+  rating    Int      // 1-5
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  job    Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  author User @relation("ReviewsWritten", fields: [authorId], references: [id])
+
+  @@unique([jobId, authorId])
+}
+
+model WorkerPost {
+  id          Int      @id @default(autoincrement())
+  workerId    Int
+  headline    String
+  skills      String   // comma-separated list
+  description String?
+  expectedPay Int?
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  worker User @relation("WorkerPosts", fields: [workerId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id         Int      @id @default(autoincrement())
+  jobId      Int?
+  employerId Int
+  workerId   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  job      Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  employer User      @relation("ConversationsAsEmployer", fields: [employerId], references: [id])
+  worker   User      @relation("ConversationsAsWorker", fields: [workerId], references: [id])
+  messages Message[]
+
+  @@unique([employerId, workerId])
+}
+
+model Message {
+  id             Int       @id @default(autoincrement())
+  conversationId Int
+  senderId       Int
+  text           String
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("MessagesSent", fields: [senderId], references: [id])
+}

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Navbar from '../../components/Navbar';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Briefcase, Plus, Search, MapPin, Users, CheckCircle2, XCircle,
     Loader2, Clock, ChevronRight, Eye, Star, Wrench,
@@ -458,10 +458,10 @@ function SkillBoard({ session }: { session: AuthSession | null }) {
 
 const FILTER_TABS = ['ทั้งหมด', 'งานด่วน', 'Part-time', 'Full-time', 'Safezone'];
 
-function JobBoard({ session }: { session: AuthSession | null }) {
+function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null; initialSearch?: string }) {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(initialSearch);
     const [activeFilter, setActiveFilter] = useState('ทั้งหมด');
     const [applyingIds, setApplyingIds] = useState<Set<number>>(new Set());
     const [appliedIds, setAppliedIds] = useState<Set<number>>(new Set());
@@ -495,6 +495,7 @@ function JobBoard({ session }: { session: AuthSession | null }) {
         } catch (err: any) {
             const msg = err?.response?.data?.message;
             if (msg === 'Already applied to this job') setAppliedIds((prev) => new Set(prev).add(job.id));
+            else if (msg === 'You cannot apply to your own job') alert('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
             else alert(msg || 'เกิดข้อผิดพลาด');
         } finally {
             setApplyingIds((prev) => { const s = new Set(prev); s.delete(job.id); return s; });
@@ -503,8 +504,14 @@ function JobBoard({ session }: { session: AuthSession | null }) {
 
     const filtered = jobs.filter((job) => {
         const label = TYPE_MAP[job.type] ?? job.type;
-        return (activeFilter === 'ทั้งหมด' || label === activeFilter) &&
-            (!search || job.title.toLowerCase().includes(search.toLowerCase()));
+        const q = search.trim().toLowerCase();
+        const poster = [job.postedBy?.firstName, job.postedBy?.lastName]
+            .filter(Boolean).join(' ').toLowerCase();
+        const matchesSearch = !q ||
+            job.title.toLowerCase().includes(q) ||
+            (job.description?.toLowerCase().includes(q) ?? false) ||
+            poster.includes(q);
+        return (activeFilter === 'ทั้งหมด' || label === activeFilter) && matchesSearch;
     });
 
     return (
@@ -571,6 +578,7 @@ function JobBoard({ session }: { session: AuthSession | null }) {
                             const isApplying = applyingIds.has(job.id);
                             const isApplied = appliedIds.has(job.id);
                             const isOpen = job.status === 'open';
+                            const isOwnJob = !!session && job.postedBy?.id === Number(session.userId);
 
                             return (
                                 <div key={job.id} className="bg-white rounded-2xl border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all overflow-hidden flex flex-col">
@@ -614,6 +622,15 @@ function JobBoard({ session }: { session: AuthSession | null }) {
                                                     <Users size={11} /> ผู้สมัคร
                                                 </Link>
                                             </div>
+                                        ) : isOwnJob ? (
+                                            <div className="flex gap-2">
+                                                <Link href={`/workboard/${job.id}`} className="flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+                                                    <Eye size={13} /> ดูรายละเอียด
+                                                </Link>
+                                                <Link href={`/employer/candidates?jobId=${job.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-sm font-bold py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                                                    <Users size={14} /> งานของคุณ
+                                                </Link>
+                                            </div>
                                         ) : (
                                             <div className="flex gap-2">
                                                 <Link href={`/workboard/${job.id}`} className="flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
@@ -640,7 +657,9 @@ function JobBoard({ session }: { session: AuthSession | null }) {
 
 type Tab = 'jobs' | 'skills';
 
-export default function WorkboardPage() {
+function WorkboardContent() {
+    const searchParams = useSearchParams();
+    const initialSearch = searchParams.get('q') ?? '';
     const [session, setSession] = useState<AuthSession | null | 'loading'>('loading');
     const [tab, setTab] = useState<Tab>('jobs');
 
@@ -679,12 +698,27 @@ export default function WorkboardPage() {
                     {session === 'loading' ? (
                         <div className="flex justify-center pt-20"><Loader2 className="h-8 w-8 animate-spin text-blue-500" /></div>
                     ) : tab === 'jobs' ? (
-                        <JobBoard session={resolvedSession} />
+                        <JobBoard session={resolvedSession} initialSearch={initialSearch} />
                     ) : (
                         <SkillBoard session={resolvedSession} />
                     )}
                 </div>
             </div>
         </>
+    );
+}
+
+export default function WorkboardPage() {
+    return (
+        <Suspense fallback={
+            <>
+                <Navbar />
+                <div className="min-h-screen bg-slate-50 flex justify-center pt-32">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                </div>
+            </>
+        }>
+            <WorkboardContent />
+        </Suspense>
     );
 }

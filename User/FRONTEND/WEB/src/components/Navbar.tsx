@@ -69,7 +69,7 @@ export default function Navbar() {
     };
 
     const userMenuItems = [
-        { label: 'โปรไฟล์', icon: <UserRound className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); setIsProfileModalOpen(true); }, comingSoon: false },
+        { label: 'โปรไฟล์', icon: <UserRound className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/profile'); }, comingSoon: false },
         { label: 'การแจ้งเตือน', icon: <Bell className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/notifications'); }, comingSoon: false },
         { label: 'ข้อความ', icon: <MessageSquare className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/messages'); }, comingSoon: false },
         { label: 'งานของฉัน', icon: <Briefcase className="h-4 w-4" />, onClick: () => handleProtectedMenuClick('/dashboard'), comingSoon: false },
@@ -117,7 +117,7 @@ export default function Navbar() {
     ];
 
     const employerMenuItems = [
-        { label: 'โปรไฟล์', icon: <UserRound className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); setIsProfileModalOpen(true); }, comingSoon: false },
+        { label: 'โปรไฟล์', icon: <UserRound className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/profile'); }, comingSoon: false },
         { label: 'การแจ้งเตือน', icon: <Bell className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/notifications'); }, comingSoon: false },
         { label: 'My Wallet', icon: <Wallet className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/employer/wallet'); }, comingSoon: false },
         { label: 'จัดการงาน', icon: <Briefcase className="h-4 w-4" />, onClick: () => router.push('/employer/jobs'), comingSoon: false },
@@ -135,10 +135,10 @@ export default function Navbar() {
                 <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
                     <Link href="/" className="flex items-center">
                         <div className="relative flex h-16 w-16 items-center justify-center -mr-2 -mt-2">
-                            <Image src="/images/workderLogo.png" alt="WORKDER" width={64} height={64} />
+                            <Image src="/images/workderLogo.png" alt="Workder" width={64} height={64} />
                         </div>
                         <span className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600">
-                            WORKDER
+                            Workder
                         </span>
                     </Link>
 

@@ -23,6 +23,9 @@ let ApplicationsService = class ApplicationsService {
             throw new common_1.NotFoundException('Job not found');
         if (job.status !== 'open')
             throw new common_1.ConflictException('Job is no longer open');
+        if (job.postedById === dto.workerId) {
+            throw new common_1.ForbiddenException('You cannot apply to your own job');
+        }
         const existing = await this.prisma.application.findUnique({
             where: { jobId_workerId: { jobId: dto.jobId, workerId: dto.workerId } },
         });
@@ -39,6 +42,22 @@ let ApplicationsService = class ApplicationsService {
                 worker: { select: { id: true, firstName: true, lastName: true, email: true } },
             },
         });
+    }
+    async getById(id) {
+        const application = await this.prisma.application.findUnique({
+            where: { id },
+            include: {
+                job: {
+                    select: { id: true, title: true, postedById: true, status: true },
+                },
+                worker: {
+                    select: { id: true, firstName: true, lastName: true },
+                },
+            },
+        });
+        if (!application)
+            throw new common_1.NotFoundException('Application not found');
+        return application;
     }
     async getApplicationsByJob(jobId) {
         return this.prisma.application.findMany({

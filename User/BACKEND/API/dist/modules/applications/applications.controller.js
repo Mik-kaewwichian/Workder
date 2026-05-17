@@ -33,6 +33,10 @@ let ApplicationsController = class ApplicationsController {
     byWorker(workerId) {
         return this.applicationsService.getApplicationsByWorker(workerId);
     }
+    // Single application by id (employer reviews before accepting)
+    byId(id) {
+        return this.applicationsService.getById(id);
+    }
     // Employer accepts or rejects an application
     updateStatus(id, dto) {
         return this.applicationsService.updateStatus(id, dto);
@@ -60,6 +64,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], ApplicationsController.prototype, "byWorker", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], ApplicationsController.prototype, "byId", null);
 __decorate([
     (0, common_1.Patch)(':id/status'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),

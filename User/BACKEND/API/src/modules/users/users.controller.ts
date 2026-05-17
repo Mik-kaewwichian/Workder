@@ -7,6 +7,7 @@ import {
     Param,
     Delete,
     ParseIntPipe,
+    NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './users.dto';
@@ -23,6 +24,13 @@ export class UsersController {
     @Get()
     findAll() {
         return this.usersService.users({});
+    }
+
+    @Get(':id/public')
+    async getPublicProfile(@Param('id', ParseIntPipe) id: number) {
+        const profile = await this.usersService.getPublicProfile(id);
+        if (!profile) throw new NotFoundException('User not found');
+        return profile;
     }
 
     @Get(':id')

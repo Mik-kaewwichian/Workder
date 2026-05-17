@@ -27,6 +27,10 @@ model User {
   subDistrict String?
   zipCode     String?
 
+  // Avatar & banner
+  avatar           String?
+  banner           String?
+
   // KYC Info
   birthDate        DateTime?
   occupation       String?
@@ -50,6 +54,23 @@ model User {
   conversationsAsEmployer Conversation[] @relation("ConversationsAsEmployer")
   conversationsAsWorker   Conversation[] @relation("ConversationsAsWorker")
   messagesSent            Message[]      @relation("MessagesSent")
+
+  userReviewsWritten  UserReview[] @relation("UserReviewsWritten")
+  userReviewsReceived UserReview[] @relation("UserReviewsReceived")
+}
+
+model UserReview {
+  id        Int      @id @default(autoincrement())
+  authorId  Int
+  targetId  Int
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  author User @relation("UserReviewsWritten", fields: [authorId], references: [id])
+  target User @relation("UserReviewsReceived", fields: [targetId], references: [id])
+
+  @@unique([authorId, targetId])
 }
 
 model Job {

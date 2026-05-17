@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { CreateApplicationDto, UpdateApplicationStatusDto } from './applications.dto';
 
@@ -10,6 +10,9 @@ export class ApplicationsService {
         const job = await this.prisma.job.findUnique({ where: { id: dto.jobId } });
         if (!job) throw new NotFoundException('Job not found');
         if (job.status !== 'open') throw new ConflictException('Job is no longer open');
+        if (job.postedById === dto.workerId) {
+            throw new ForbiddenException('You cannot apply to your own job');
+        }
 
         const existing = await this.prisma.application.findUnique({
             where: { jobId_workerId: { jobId: dto.jobId, workerId: dto.workerId } },
@@ -27,6 +30,22 @@ export class ApplicationsService {
                 worker: { select: { id: true, firstName: true, lastName: true, email: true } },
             },
         });
+    }
+
+    async getById(id: number) {
+        const application = await this.prisma.application.findUnique({
+            where: { id },
+            include: {
+                job: {
+                    select: { id: true, title: true, postedById: true, status: true },
+                },
+                worker: {
+                    select: { id: true, firstName: true, lastName: true },
+                },
+            },
+        });
+        if (!application) throw new NotFoundException('Application not found');
+        return application;
     }
 
     async getApplicationsByJob(jobId: number) {

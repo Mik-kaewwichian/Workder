@@ -4,7 +4,7 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
 import Link from 'next/link';
-import { ArrowLeft, Users, Briefcase, CheckCircle2, XCircle, Clock, Loader2, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Users, Briefcase, CheckCircle2, XCircle, Clock, Loader2, MessageSquare, UserRound } from 'lucide-react';
 import api from '../../../lib/api';
 import { getAuthSession } from '../../../features/auth/lib/auth';
 
@@ -179,12 +179,12 @@ function CandidatesContent() {
                                     const isUpdating = updatingId === app.id;
                                     return (
                                         <div key={app.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
-                                            <div className="h-11 w-11 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0">
+                                            <Link href={`/profile/${app.worker.id}`} className="h-11 w-11 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0 hover:ring-2 hover:ring-blue-400 transition-all">
                                                 {initial}
-                                            </div>
+                                            </Link>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="font-semibold text-slate-900">{name}</span>
+                                                    <Link href={`/profile/${app.worker.id}`} className="font-semibold text-slate-900 hover:text-blue-600 transition-colors">{name}</Link>
                                                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[app.status] ?? 'bg-slate-100 text-slate-600'}`}>
                                                         {STATUS_LABEL[app.status] ?? app.status}
                                                     </span>
@@ -194,6 +194,12 @@ function CandidatesContent() {
                                                 <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1"><Clock size={10} /> สมัครเมื่อ {formatDate(app.createdAt)}</p>
                                             </div>
                                             <div className="flex gap-2 flex-shrink-0">
+                                                <Link
+                                                    href={`/profile/${app.worker.id}?applicationId=${app.id}`}
+                                                    className="flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+                                                >
+                                                    <UserRound size={12} /> ดูโปรไฟล์
+                                                </Link>
                                                 <button
                                                     disabled={chattingId === app.worker.id}
                                                     onClick={() => startChat(app.worker.id)}

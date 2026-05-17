@@ -24,6 +24,12 @@ export class ApplicationsController {
         return this.applicationsService.getApplicationsByWorker(workerId);
     }
 
+    // Single application by id (employer reviews before accepting)
+    @Get(':id')
+    byId(@Param('id', ParseIntPipe) id: number) {
+        return this.applicationsService.getById(id);
+    }
+
     // Employer accepts or rejects an application
     @Patch(':id/status')
     updateStatus(

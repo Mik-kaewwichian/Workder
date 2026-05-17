@@ -27,6 +27,12 @@ let UsersController = class UsersController {
     findAll() {
         return this.usersService.users({});
     }
+    async getPublicProfile(id) {
+        const profile = await this.usersService.getPublicProfile(id);
+        if (!profile)
+            throw new common_1.NotFoundException('User not found');
+        return profile;
+    }
     findOne(id) {
         return this.usersService.user({ id });
     }
@@ -54,6 +60,13 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)(':id/public'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getPublicProfile", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),

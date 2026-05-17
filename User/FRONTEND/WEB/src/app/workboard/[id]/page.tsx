@@ -161,6 +161,7 @@ export default function JobDetailPage() {
 
     const session = typeof window !== 'undefined' ? getAuthSession() : null;
     const isEmployer = session?.role === 'employer';
+    const isOwnJob = !!session && !!job?.postedBy?.id && job.postedBy.id === Number(session.userId);
 
     useEffect(() => {
         api.get(`/jobs/${id}`)
@@ -179,6 +180,7 @@ export default function JobDetailPage() {
         } catch (err: any) {
             const msg = err?.response?.data?.message;
             if (msg === 'Already applied to this job') setApplied(true);
+            else if (msg === 'You cannot apply to your own job') setApplyError('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
             else setApplyError(msg || 'เกิดข้อผิดพลาด');
         } finally {
             setApplying(false);
@@ -341,8 +343,27 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* Sticky apply bar — workers only */}
-            {job && !isEmployer && (
+            {/* Owner notice — this is your own job posting */}
+            {job && isOwnJob && (
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 flex items-center gap-3">
+                    <div className="flex-1">
+                        <p className="font-bold text-slate-900 text-sm truncate">{job.title}</p>
+                        <p className="text-blue-600 font-bold">{job.payAmount.toLocaleString()}฿</p>
+                    </div>
+                    <span className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-100 text-slate-500 font-bold text-sm">
+                        นี่คืองานที่คุณโพสต์
+                    </span>
+                    <button
+                        onClick={() => router.push(`/employer/candidates?jobId=${job.id}`)}
+                        className="flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-colors active:scale-95"
+                    >
+                        ดูผู้สมัคร
+                    </button>
+                </div>
+            )}
+
+            {/* Sticky apply bar — workers only, not own job */}
+            {job && !isEmployer && !isOwnJob && (
                 <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 flex items-center gap-3">
                     <div className="flex-1">
                         <p className="font-bold text-slate-900 text-sm truncate">{job.title}</p>

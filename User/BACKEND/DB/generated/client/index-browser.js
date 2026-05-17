@@ -132,6 +132,8 @@ exports.Prisma.UserScalarFieldEnum = {
   district: 'district',
   subDistrict: 'subDistrict',
   zipCode: 'zipCode',
+  avatar: 'avatar',
+  banner: 'banner',
   birthDate: 'birthDate',
   occupation: 'occupation',
   income: 'income',
@@ -144,6 +146,15 @@ exports.Prisma.UserScalarFieldEnum = {
   profileCompleted: 'profileCompleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserReviewScalarFieldEnum = {
+  id: 'id',
+  authorId: 'authorId',
+  targetId: 'targetId',
+  rating: 'rating',
+  comment: 'comment',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.JobScalarFieldEnum = {
@@ -227,6 +238,7 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  UserReview: 'UserReview',
   Job: 'Job',
   Application: 'Application',
   Review: 'Review',

@@ -9,15 +9,11 @@ import {
   CheckCircle2,
   Crown,
   Gem,
-  Globe2,
   LayoutGrid,
   MessageSquareQuote,
   Search,
   ShieldCheck,
-  Sparkles,
   Star,
-  TrendingUp,
-  Zap,
   Heart,
   Gift,
   Building2,
@@ -33,11 +29,16 @@ import { getAuthSession, type AuthSession } from '../features/auth/lib/auth';
 export default function Home() {
   const router = useRouter();
   const [currentPromo, setCurrentPromo] = useState(0);
-  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
   const [session, setSession] = useState<AuthSession | null>(null);
   const [selectedJob, setSelectedJob] = useState<JobTickerItem | null>(null);
   const [reviewTab, setReviewTab] = useState<'employer' | 'worker'>('worker');
+  const [searchKeyword, setSearchKeyword] = useState('');
   const promoContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleSearch = () => {
+    const q = searchKeyword.trim();
+    router.push(q ? `/workboard?q=${encodeURIComponent(q)}` : '/workboard');
+  };
 
   type JobTickerItem = {
     title: string;
@@ -47,37 +48,6 @@ export default function Home() {
     responsibilities: string[];
     benefits: string[];
   };
-
-  const heroHighlights = [
-    {
-      title: 'โค้ดโปรใหม่: WELCOME50',
-      description: 'รับส่วนลดค่าธรรมเนียม 50% สำหรับงานแรกของคุณ',
-      cta: 'ใช้โปรตอนนี้',
-      href: '/work',
-      color: 'from-blue-600 to-cyan-500',
-    },
-    {
-      title: 'เริ่มงานไวกว่าเดิม',
-      description: 'กรอกข้อมูลโปรไฟล์ให้ครบ เพื่อปลดล็อกงานที่ตรงทักษะมากขึ้น',
-      cta: 'ไปที่ MyJob',
-      href: '/dashboard',
-      color: 'from-indigo-600 to-blue-500',
-    },
-    {
-      title: 'สมัคร Safezone วันนี้',
-      description: 'ยืนยันตัวตน เพิ่มความน่าเชื่อถือ และรับงานคุณภาพสูง',
-      cta: 'ดู Safezone',
-      href: '/safezone',
-      color: 'from-pink-600 to-rose-500',
-    },
-    {
-      title: 'อัปเกรดเป็น Premium',
-      description: 'เห็นงานก่อนใคร พร้อมสิทธิประโยชน์พิเศษสำหรับสมาชิก',
-      cta: 'ดูแพ็กเกจ Premium',
-      href: '/premium',
-      color: 'from-amber-500 to-orange-500',
-    },
-  ];
 
   useEffect(() => {
     setSession(getAuthSession());
@@ -90,17 +60,6 @@ export default function Home() {
     }
   }, [session, router]);
 
-  useEffect(() => {
-    if (!session) {
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setCurrentHeroSlide((prev) => (prev + 1) % heroHighlights.length);
-    }, 3200);
-
-    return () => clearInterval(timer);
-  }, [session, heroHighlights.length]);
 
   const jobTicker: JobTickerItem[] = [
     {
@@ -258,17 +217,6 @@ export default function Home() {
     { title: "Flash Deal: Boost Post", desc: "โปรโมทงานเพียง 99฿", color: "from-yellow-400 to-amber-500" },
   ];
 
-  const sponsors = [
-    { title: "Cloud Services", sub: "ลดต้นทุน 50% สำหรับ Startup", color: "bg-gradient-to-r from-blue-500 to-cyan-500", icon: <Globe2 className="h-8 w-8 text-white/80" /> },
-    { title: "Invest Future", sub: "ร่วมลงทุนในธุรกิจน่าจับตามอง", color: "bg-gradient-to-r from-purple-500 to-pink-500", icon: <TrendingUp className="h-8 w-8 text-white/80" /> },
-    { title: "Secure Pay", sub: "ระบบชำระเงินที่ปลอดภัยที่สุด", color: "bg-gradient-to-r from-green-400 to-emerald-600", icon: <ShieldCheck className="h-8 w-8 text-white/80" /> },
-    { title: "Global Talent", sub: "หาคนเก่งจากทั่วโลก", color: "bg-gradient-to-r from-orange-400 to-red-500", icon: <Globe2 className="h-8 w-8 text-white/80" /> },
-    { title: "Tech Accelerator", sub: "โครงการบ่มเพาะธุรกิจ", color: "bg-gradient-to-r from-pink-500 to-rose-600", icon: <Zap className="h-8 w-8 text-white/80" /> },
-    { title: "AI Solutions", sub: "ยกระดับธุรกิจด้วย AI", color: "bg-gradient-to-r from-indigo-500 to-violet-600", icon: <Sparkles className="h-8 w-8 text-white/80" /> },
-    { title: "Green Energy", sub: "พลังงานสะอาดเพื่ออนาคต", color: "bg-gradient-to-r from-teal-400 to-green-500", icon: <Zap className="h-8 w-8 text-white/80" /> },
-    { title: "Space Tech", sub: "เทคโนโลยีอวกาศ", color: "bg-gradient-to-r from-slate-700 to-slate-900", icon: <Globe2 className="h-8 w-8 text-white/80" /> },
-  ];
-
   // Auto-scroll logic for Promotions
   useEffect(() => {
     const timer = setInterval(() => {
@@ -343,6 +291,35 @@ export default function Home() {
 
       <Navbar />
 
+      {/* Job Search Bar */}
+      <section className="relative px-6 pt-6">
+        <form
+          onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
+          className="mx-auto max-w-3xl relative group"
+        >
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 opacity-30 blur-lg transition duration-500 group-hover:opacity-60"></div>
+          <div className="relative flex items-center rounded-full bg-white/90 p-2 shadow-xl ring-1 ring-slate-900/5 backdrop-blur-xl">
+            <div className="flex-1 flex items-center gap-3 pl-6">
+              <Search className="h-6 w-6 text-slate-400" />
+              <input
+                type="text"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                placeholder="ค้นหาตำแหน่ง, ทักษะ หรือบริษัทในฝัน..."
+                className="w-full bg-transparent py-4 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              className="hidden sm:flex items-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-base font-bold text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:scale-105"
+            >
+              <Search className="h-5 w-5" />
+              ค้นหา
+            </button>
+          </div>
+        </form>
+      </section>
+
       {/* Hero Section */}
       <section className="relative pt-10 pb-10 px-6">
         <div className="mx-auto max-w-7xl text-center">
@@ -364,66 +341,7 @@ export default function Home() {
             ที่เชื่อมต่อคุณกับโอกาสที่ดีที่สุดทั่วโลก ภายในเสี้ยววินาที
           </p>
 
-          {session ? (
-            <div className="mx-auto mt-8 max-w-6xl">
-              <p className="text-sm md:text-base font-semibold text-slate-700 mb-4">
-                ยินดีต้อนรับกลับมา <span className="text-blue-700">{session.userId}</span> 🎉
-              </p>
 
-              <div className="relative rounded-3xl overflow-hidden border border-white/60 shadow-xl bg-white/70 backdrop-blur-sm">
-                <div
-                  className="flex h-[220px] md:h-[240px] transition-transform duration-700 ease-out"
-                  style={{ transform: `translateX(-${currentHeroSlide * 100}%)` }}
-                >
-                  {heroHighlights.map((slide) => (
-                    <Link
-                      key={slide.title}
-                      href={slide.href}
-                      className={`min-w-full h-full bg-gradient-to-r ${slide.color} p-6 md:p-8 text-white text-left flex flex-col justify-center`}
-                    >
-                      <p className="text-xs uppercase tracking-wide text-white/80">แนะนำสำหรับคุณ</p>
-                      <h3 className="text-xl md:text-2xl font-bold mt-1">{slide.title}</h3>
-                      <p className="text-sm md:text-base text-white/90 mt-2">{slide.description}</p>
-                      <span className="inline-flex items-center gap-2 mt-4 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold">
-                        {slide.cta}
-                        <ArrowRight className="h-4 w-4" />
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2">
-                  {heroHighlights.map((slide, index) => (
-                    <button
-                      key={`${slide.title}-dot`}
-                      type="button"
-                      onClick={() => setCurrentHeroSlide(index)}
-                      className={`h-2.5 rounded-full transition-all ${currentHeroSlide === index ? 'w-8 bg-white' : 'w-2.5 bg-white/60 hover:bg-white/80'}`}
-                      aria-label={`slide-${index + 1}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="mx-auto mt-12 max-w-3xl relative group">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 opacity-30 blur-lg transition duration-500 group-hover:opacity-60"></div>
-            <div className="relative flex items-center rounded-full bg-white/90 p-2 shadow-xl ring-1 ring-slate-900/5 backdrop-blur-xl">
-              <div className="flex-1 flex items-center gap-3 pl-6">
-                <Search className="h-6 w-6 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="ค้นหาตำแหน่ง, ทักษะ หรือบริษัทในฝัน..."
-                  className="w-full bg-transparent py-4 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                />
-              </div>
-              <button className="hidden sm:flex items-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-base font-bold text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:scale-105">
-                <Search className="h-5 w-5" />
-                ค้นหา
-              </button>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -478,24 +396,6 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Sponsors/Ads */}
-      <section className="py-12 bg-white/30 border-b border-white/50">
-        <div className="flex overflow-x-auto pb-6 px-6 gap-6 justify-start scrollbar-hide">
-          {sponsors.map((sponsor, i) => (
-            <div key={i} className={`shrink-0 w-72 h-40 rounded-xl ${sponsor.color} relative overflow-hidden shadow-lg hover:shadow-xl transition-all cursor-pointer hover:scale-105 group`}>
-              <div className="absolute top-[-20%] right-[-20%] rounded-full w-32 h-32 bg-white/20 blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
-              <div className="relative z-10 h-full flex flex-col justify-end p-5 text-white">
-                <div className="mb-auto opacity-80 bg-white/20 w-fit p-2 rounded-lg backdrop-blur-sm">
-                  {sponsor.icon}
-                </div>
-                <h3 className="font-bold text-lg leading-tight">{sponsor.title}</h3>
-                <p className="text-xs text-white/90 mt-1">{sponsor.sub}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 

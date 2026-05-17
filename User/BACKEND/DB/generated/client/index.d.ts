@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model UserReview
+ * 
+ */
+export type UserReview = $Result.DefaultSelection<Prisma.$UserReviewPayload>
+/**
  * Model Job
  * 
  */
@@ -176,6 +181,16 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userReview`: Exposes CRUD operations for the **UserReview** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserReviews
+    * const userReviews = await prisma.userReview.findMany()
+    * ```
+    */
+  get userReview(): Prisma.UserReviewDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.job`: Exposes CRUD operations for the **Job** model.
@@ -678,6 +693,7 @@ export namespace Prisma {
 
   export const ModelName: {
     User: 'User',
+    UserReview: 'UserReview',
     Job: 'Job',
     Application: 'Application',
     Review: 'Review',
@@ -702,7 +718,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "job" | "application" | "review" | "workerPost" | "conversation" | "message"
+      modelProps: "user" | "userReview" | "job" | "application" | "review" | "workerPost" | "conversation" | "message"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -777,6 +793,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserReview: {
+        payload: Prisma.$UserReviewPayload<ExtArgs>
+        fields: Prisma.UserReviewFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserReviewFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserReviewFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>
+          }
+          findFirst: {
+            args: Prisma.UserReviewFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserReviewFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>
+          }
+          findMany: {
+            args: Prisma.UserReviewFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>[]
+          }
+          create: {
+            args: Prisma.UserReviewCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>
+          }
+          createMany: {
+            args: Prisma.UserReviewCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserReviewCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>[]
+          }
+          delete: {
+            args: Prisma.UserReviewDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>
+          }
+          update: {
+            args: Prisma.UserReviewUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserReviewDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserReviewUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserReviewUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserReviewUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserReviewPayload>
+          }
+          aggregate: {
+            args: Prisma.UserReviewAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserReview>
+          }
+          groupBy: {
+            args: Prisma.UserReviewGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserReviewGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserReviewCountArgs<ExtArgs>
+            result: $Utils.Optional<UserReviewCountAggregateOutputType> | number
           }
         }
       }
@@ -1321,6 +1411,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     user?: UserOmit
+    userReview?: UserReviewOmit
     job?: JobOmit
     application?: ApplicationOmit
     review?: ReviewOmit
@@ -1414,6 +1505,8 @@ export namespace Prisma {
     conversationsAsEmployer: number
     conversationsAsWorker: number
     messagesSent: number
+    userReviewsWritten: number
+    userReviewsReceived: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1424,6 +1517,8 @@ export namespace Prisma {
     conversationsAsEmployer?: boolean | UserCountOutputTypeCountConversationsAsEmployerArgs
     conversationsAsWorker?: boolean | UserCountOutputTypeCountConversationsAsWorkerArgs
     messagesSent?: boolean | UserCountOutputTypeCountMessagesSentArgs
+    userReviewsWritten?: boolean | UserCountOutputTypeCountUserReviewsWrittenArgs
+    userReviewsReceived?: boolean | UserCountOutputTypeCountUserReviewsReceivedArgs
   }
 
   // Custom InputTypes
@@ -1484,6 +1579,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountMessagesSentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MessageWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountUserReviewsWrittenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserReviewWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountUserReviewsReceivedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserReviewWhereInput
   }
 
 
@@ -1607,6 +1716,8 @@ export namespace Prisma {
     district: string | null
     subDistrict: string | null
     zipCode: string | null
+    avatar: string | null
+    banner: string | null
     birthDate: Date | null
     occupation: string | null
     income: number | null
@@ -1635,6 +1746,8 @@ export namespace Prisma {
     district: string | null
     subDistrict: string | null
     zipCode: string | null
+    avatar: string | null
+    banner: string | null
     birthDate: Date | null
     occupation: string | null
     income: number | null
@@ -1663,6 +1776,8 @@ export namespace Prisma {
     district: number
     subDistrict: number
     zipCode: number
+    avatar: number
+    banner: number
     birthDate: number
     occupation: number
     income: number
@@ -1703,6 +1818,8 @@ export namespace Prisma {
     district?: true
     subDistrict?: true
     zipCode?: true
+    avatar?: true
+    banner?: true
     birthDate?: true
     occupation?: true
     income?: true
@@ -1731,6 +1848,8 @@ export namespace Prisma {
     district?: true
     subDistrict?: true
     zipCode?: true
+    avatar?: true
+    banner?: true
     birthDate?: true
     occupation?: true
     income?: true
@@ -1759,6 +1878,8 @@ export namespace Prisma {
     district?: true
     subDistrict?: true
     zipCode?: true
+    avatar?: true
+    banner?: true
     birthDate?: true
     occupation?: true
     income?: true
@@ -1874,6 +1995,8 @@ export namespace Prisma {
     district: string | null
     subDistrict: string | null
     zipCode: string | null
+    avatar: string | null
+    banner: string | null
     birthDate: Date | null
     occupation: string | null
     income: number | null
@@ -1921,6 +2044,8 @@ export namespace Prisma {
     district?: boolean
     subDistrict?: boolean
     zipCode?: boolean
+    avatar?: boolean
+    banner?: boolean
     birthDate?: boolean
     occupation?: boolean
     income?: boolean
@@ -1940,6 +2065,8 @@ export namespace Prisma {
     conversationsAsEmployer?: boolean | User$conversationsAsEmployerArgs<ExtArgs>
     conversationsAsWorker?: boolean | User$conversationsAsWorkerArgs<ExtArgs>
     messagesSent?: boolean | User$messagesSentArgs<ExtArgs>
+    userReviewsWritten?: boolean | User$userReviewsWrittenArgs<ExtArgs>
+    userReviewsReceived?: boolean | User$userReviewsReceivedArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1957,6 +2084,8 @@ export namespace Prisma {
     district?: boolean
     subDistrict?: boolean
     zipCode?: boolean
+    avatar?: boolean
+    banner?: boolean
     birthDate?: boolean
     occupation?: boolean
     income?: boolean
@@ -1985,6 +2114,8 @@ export namespace Prisma {
     district?: boolean
     subDistrict?: boolean
     zipCode?: boolean
+    avatar?: boolean
+    banner?: boolean
     birthDate?: boolean
     occupation?: boolean
     income?: boolean
@@ -2013,6 +2144,8 @@ export namespace Prisma {
     district?: boolean
     subDistrict?: boolean
     zipCode?: boolean
+    avatar?: boolean
+    banner?: boolean
     birthDate?: boolean
     occupation?: boolean
     income?: boolean
@@ -2027,7 +2160,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phone" | "email" | "role" | "passwordHash" | "firstName" | "lastName" | "idCard" | "address" | "province" | "district" | "subDistrict" | "zipCode" | "birthDate" | "occupation" | "income" | "education" | "certificates" | "idCardFront" | "idCardBack" | "idCardSelfie" | "faceScan" | "profileCompleted" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phone" | "email" | "role" | "passwordHash" | "firstName" | "lastName" | "idCard" | "address" | "province" | "district" | "subDistrict" | "zipCode" | "avatar" | "banner" | "birthDate" | "occupation" | "income" | "education" | "certificates" | "idCardFront" | "idCardBack" | "idCardSelfie" | "faceScan" | "profileCompleted" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     jobsPosted?: boolean | User$jobsPostedArgs<ExtArgs>
     applicationsSubmitted?: boolean | User$applicationsSubmittedArgs<ExtArgs>
@@ -2036,6 +2169,8 @@ export namespace Prisma {
     conversationsAsEmployer?: boolean | User$conversationsAsEmployerArgs<ExtArgs>
     conversationsAsWorker?: boolean | User$conversationsAsWorkerArgs<ExtArgs>
     messagesSent?: boolean | User$messagesSentArgs<ExtArgs>
+    userReviewsWritten?: boolean | User$userReviewsWrittenArgs<ExtArgs>
+    userReviewsReceived?: boolean | User$userReviewsReceivedArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2051,6 +2186,8 @@ export namespace Prisma {
       conversationsAsEmployer: Prisma.$ConversationPayload<ExtArgs>[]
       conversationsAsWorker: Prisma.$ConversationPayload<ExtArgs>[]
       messagesSent: Prisma.$MessagePayload<ExtArgs>[]
+      userReviewsWritten: Prisma.$UserReviewPayload<ExtArgs>[]
+      userReviewsReceived: Prisma.$UserReviewPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2066,6 +2203,8 @@ export namespace Prisma {
       district: string | null
       subDistrict: string | null
       zipCode: string | null
+      avatar: string | null
+      banner: string | null
       birthDate: Date | null
       occupation: string | null
       income: number | null
@@ -2479,6 +2618,8 @@ export namespace Prisma {
     conversationsAsEmployer<T extends User$conversationsAsEmployerArgs<ExtArgs> = {}>(args?: Subset<T, User$conversationsAsEmployerArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversationsAsWorker<T extends User$conversationsAsWorkerArgs<ExtArgs> = {}>(args?: Subset<T, User$conversationsAsWorkerArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     messagesSent<T extends User$messagesSentArgs<ExtArgs> = {}>(args?: Subset<T, User$messagesSentArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    userReviewsWritten<T extends User$userReviewsWrittenArgs<ExtArgs> = {}>(args?: Subset<T, User$userReviewsWrittenArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    userReviewsReceived<T extends User$userReviewsReceivedArgs<ExtArgs> = {}>(args?: Subset<T, User$userReviewsReceivedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2521,6 +2662,8 @@ export namespace Prisma {
     readonly district: FieldRef<"User", 'String'>
     readonly subDistrict: FieldRef<"User", 'String'>
     readonly zipCode: FieldRef<"User", 'String'>
+    readonly avatar: FieldRef<"User", 'String'>
+    readonly banner: FieldRef<"User", 'String'>
     readonly birthDate: FieldRef<"User", 'DateTime'>
     readonly occupation: FieldRef<"User", 'String'>
     readonly income: FieldRef<"User", 'Int'>
@@ -3087,6 +3230,54 @@ export namespace Prisma {
   }
 
   /**
+   * User.userReviewsWritten
+   */
+  export type User$userReviewsWrittenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    where?: UserReviewWhereInput
+    orderBy?: UserReviewOrderByWithRelationInput | UserReviewOrderByWithRelationInput[]
+    cursor?: UserReviewWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserReviewScalarFieldEnum | UserReviewScalarFieldEnum[]
+  }
+
+  /**
+   * User.userReviewsReceived
+   */
+  export type User$userReviewsReceivedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    where?: UserReviewWhereInput
+    orderBy?: UserReviewOrderByWithRelationInput | UserReviewOrderByWithRelationInput[]
+    cursor?: UserReviewWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserReviewScalarFieldEnum | UserReviewScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3102,6 +3293,1129 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserReview
+   */
+
+  export type AggregateUserReview = {
+    _count: UserReviewCountAggregateOutputType | null
+    _avg: UserReviewAvgAggregateOutputType | null
+    _sum: UserReviewSumAggregateOutputType | null
+    _min: UserReviewMinAggregateOutputType | null
+    _max: UserReviewMaxAggregateOutputType | null
+  }
+
+  export type UserReviewAvgAggregateOutputType = {
+    id: number | null
+    authorId: number | null
+    targetId: number | null
+    rating: number | null
+  }
+
+  export type UserReviewSumAggregateOutputType = {
+    id: number | null
+    authorId: number | null
+    targetId: number | null
+    rating: number | null
+  }
+
+  export type UserReviewMinAggregateOutputType = {
+    id: number | null
+    authorId: number | null
+    targetId: number | null
+    rating: number | null
+    comment: string | null
+    createdAt: Date | null
+  }
+
+  export type UserReviewMaxAggregateOutputType = {
+    id: number | null
+    authorId: number | null
+    targetId: number | null
+    rating: number | null
+    comment: string | null
+    createdAt: Date | null
+  }
+
+  export type UserReviewCountAggregateOutputType = {
+    id: number
+    authorId: number
+    targetId: number
+    rating: number
+    comment: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type UserReviewAvgAggregateInputType = {
+    id?: true
+    authorId?: true
+    targetId?: true
+    rating?: true
+  }
+
+  export type UserReviewSumAggregateInputType = {
+    id?: true
+    authorId?: true
+    targetId?: true
+    rating?: true
+  }
+
+  export type UserReviewMinAggregateInputType = {
+    id?: true
+    authorId?: true
+    targetId?: true
+    rating?: true
+    comment?: true
+    createdAt?: true
+  }
+
+  export type UserReviewMaxAggregateInputType = {
+    id?: true
+    authorId?: true
+    targetId?: true
+    rating?: true
+    comment?: true
+    createdAt?: true
+  }
+
+  export type UserReviewCountAggregateInputType = {
+    id?: true
+    authorId?: true
+    targetId?: true
+    rating?: true
+    comment?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type UserReviewAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserReview to aggregate.
+     */
+    where?: UserReviewWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserReviews to fetch.
+     */
+    orderBy?: UserReviewOrderByWithRelationInput | UserReviewOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserReviewWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserReviews from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserReviews.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserReviews
+    **/
+    _count?: true | UserReviewCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UserReviewAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UserReviewSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserReviewMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserReviewMaxAggregateInputType
+  }
+
+  export type GetUserReviewAggregateType<T extends UserReviewAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserReview]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserReview[P]>
+      : GetScalarType<T[P], AggregateUserReview[P]>
+  }
+
+
+
+
+  export type UserReviewGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserReviewWhereInput
+    orderBy?: UserReviewOrderByWithAggregationInput | UserReviewOrderByWithAggregationInput[]
+    by: UserReviewScalarFieldEnum[] | UserReviewScalarFieldEnum
+    having?: UserReviewScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserReviewCountAggregateInputType | true
+    _avg?: UserReviewAvgAggregateInputType
+    _sum?: UserReviewSumAggregateInputType
+    _min?: UserReviewMinAggregateInputType
+    _max?: UserReviewMaxAggregateInputType
+  }
+
+  export type UserReviewGroupByOutputType = {
+    id: number
+    authorId: number
+    targetId: number
+    rating: number
+    comment: string
+    createdAt: Date
+    _count: UserReviewCountAggregateOutputType | null
+    _avg: UserReviewAvgAggregateOutputType | null
+    _sum: UserReviewSumAggregateOutputType | null
+    _min: UserReviewMinAggregateOutputType | null
+    _max: UserReviewMaxAggregateOutputType | null
+  }
+
+  type GetUserReviewGroupByPayload<T extends UserReviewGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserReviewGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserReviewGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserReviewGroupByOutputType[P]>
+            : GetScalarType<T[P], UserReviewGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserReviewSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    authorId?: boolean
+    targetId?: boolean
+    rating?: boolean
+    comment?: boolean
+    createdAt?: boolean
+    author?: boolean | UserDefaultArgs<ExtArgs>
+    target?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userReview"]>
+
+  export type UserReviewSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    authorId?: boolean
+    targetId?: boolean
+    rating?: boolean
+    comment?: boolean
+    createdAt?: boolean
+    author?: boolean | UserDefaultArgs<ExtArgs>
+    target?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userReview"]>
+
+  export type UserReviewSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    authorId?: boolean
+    targetId?: boolean
+    rating?: boolean
+    comment?: boolean
+    createdAt?: boolean
+    author?: boolean | UserDefaultArgs<ExtArgs>
+    target?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userReview"]>
+
+  export type UserReviewSelectScalar = {
+    id?: boolean
+    authorId?: boolean
+    targetId?: boolean
+    rating?: boolean
+    comment?: boolean
+    createdAt?: boolean
+  }
+
+  export type UserReviewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "authorId" | "targetId" | "rating" | "comment" | "createdAt", ExtArgs["result"]["userReview"]>
+  export type UserReviewInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    author?: boolean | UserDefaultArgs<ExtArgs>
+    target?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type UserReviewIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    author?: boolean | UserDefaultArgs<ExtArgs>
+    target?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type UserReviewIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    author?: boolean | UserDefaultArgs<ExtArgs>
+    target?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $UserReviewPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserReview"
+    objects: {
+      author: Prisma.$UserPayload<ExtArgs>
+      target: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      authorId: number
+      targetId: number
+      rating: number
+      comment: string
+      createdAt: Date
+    }, ExtArgs["result"]["userReview"]>
+    composites: {}
+  }
+
+  type UserReviewGetPayload<S extends boolean | null | undefined | UserReviewDefaultArgs> = $Result.GetResult<Prisma.$UserReviewPayload, S>
+
+  type UserReviewCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserReviewFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserReviewCountAggregateInputType | true
+    }
+
+  export interface UserReviewDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserReview'], meta: { name: 'UserReview' } }
+    /**
+     * Find zero or one UserReview that matches the filter.
+     * @param {UserReviewFindUniqueArgs} args - Arguments to find a UserReview
+     * @example
+     * // Get one UserReview
+     * const userReview = await prisma.userReview.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserReviewFindUniqueArgs>(args: SelectSubset<T, UserReviewFindUniqueArgs<ExtArgs>>): Prisma__UserReviewClient<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserReview that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserReviewFindUniqueOrThrowArgs} args - Arguments to find a UserReview
+     * @example
+     * // Get one UserReview
+     * const userReview = await prisma.userReview.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserReviewFindUniqueOrThrowArgs>(args: SelectSubset<T, UserReviewFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserReviewClient<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserReview that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserReviewFindFirstArgs} args - Arguments to find a UserReview
+     * @example
+     * // Get one UserReview
+     * const userReview = await prisma.userReview.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserReviewFindFirstArgs>(args?: SelectSubset<T, UserReviewFindFirstArgs<ExtArgs>>): Prisma__UserReviewClient<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserReview that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserReviewFindFirstOrThrowArgs} args - Arguments to find a UserReview
+     * @example
+     * // Get one UserReview
+     * const userReview = await prisma.userReview.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserReviewFindFirstOrThrowArgs>(args?: SelectSubset<T, UserReviewFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserReviewClient<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserReviews that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserReviewFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserReviews
+     * const userReviews = await prisma.userReview.findMany()
+     * 
+     * // Get first 10 UserReviews
+     * const userReviews = await prisma.userReview.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userReviewWithIdOnly = await prisma.userReview.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserReviewFindManyArgs>(args?: SelectSubset<T, UserReviewFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserReview.
+     * @param {UserReviewCreateArgs} args - Arguments to create a UserReview.
+     * @example
+     * // Create one UserReview
+     * const UserReview = await prisma.userReview.create({
+     *   data: {
+     *     // ... data to create a UserReview
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserReviewCreateArgs>(args: SelectSubset<T, UserReviewCreateArgs<ExtArgs>>): Prisma__UserReviewClient<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserReviews.
+     * @param {UserReviewCreateManyArgs} args - Arguments to create many UserReviews.
+     * @example
+     * // Create many UserReviews
+     * const userReview = await prisma.userReview.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserReviewCreateManyArgs>(args?: SelectSubset<T, UserReviewCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserReviews and returns the data saved in the database.
+     * @param {UserReviewCreateManyAndReturnArgs} args - Arguments to create many UserReviews.
+     * @example
+     * // Create many UserReviews
+     * const userReview = await prisma.userReview.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserReviews and only return the `id`
+     * const userReviewWithIdOnly = await prisma.userReview.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserReviewCreateManyAndReturnArgs>(args?: SelectSubset<T, UserReviewCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserReview.
+     * @param {UserReviewDeleteArgs} args - Arguments to delete one UserReview.
+     * @example
+     * // Delete one UserReview
+     * const UserReview = await prisma.userReview.delete({
+     *   where: {
+     *     // ... filter to delete one UserReview
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserReviewDeleteArgs>(args: SelectSubset<T, UserReviewDeleteArgs<ExtArgs>>): Prisma__UserReviewClient<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserReview.
+     * @param {UserReviewUpdateArgs} args - Arguments to update one UserReview.
+     * @example
+     * // Update one UserReview
+     * const userReview = await prisma.userReview.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserReviewUpdateArgs>(args: SelectSubset<T, UserReviewUpdateArgs<ExtArgs>>): Prisma__UserReviewClient<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserReviews.
+     * @param {UserReviewDeleteManyArgs} args - Arguments to filter UserReviews to delete.
+     * @example
+     * // Delete a few UserReviews
+     * const { count } = await prisma.userReview.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserReviewDeleteManyArgs>(args?: SelectSubset<T, UserReviewDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserReviews.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserReviewUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserReviews
+     * const userReview = await prisma.userReview.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserReviewUpdateManyArgs>(args: SelectSubset<T, UserReviewUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserReviews and returns the data updated in the database.
+     * @param {UserReviewUpdateManyAndReturnArgs} args - Arguments to update many UserReviews.
+     * @example
+     * // Update many UserReviews
+     * const userReview = await prisma.userReview.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserReviews and only return the `id`
+     * const userReviewWithIdOnly = await prisma.userReview.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserReviewUpdateManyAndReturnArgs>(args: SelectSubset<T, UserReviewUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserReview.
+     * @param {UserReviewUpsertArgs} args - Arguments to update or create a UserReview.
+     * @example
+     * // Update or create a UserReview
+     * const userReview = await prisma.userReview.upsert({
+     *   create: {
+     *     // ... data to create a UserReview
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserReview we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserReviewUpsertArgs>(args: SelectSubset<T, UserReviewUpsertArgs<ExtArgs>>): Prisma__UserReviewClient<$Result.GetResult<Prisma.$UserReviewPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserReviews.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserReviewCountArgs} args - Arguments to filter UserReviews to count.
+     * @example
+     * // Count the number of UserReviews
+     * const count = await prisma.userReview.count({
+     *   where: {
+     *     // ... the filter for the UserReviews we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserReviewCountArgs>(
+      args?: Subset<T, UserReviewCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserReviewCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserReview.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserReviewAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserReviewAggregateArgs>(args: Subset<T, UserReviewAggregateArgs>): Prisma.PrismaPromise<GetUserReviewAggregateType<T>>
+
+    /**
+     * Group by UserReview.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserReviewGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserReviewGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserReviewGroupByArgs['orderBy'] }
+        : { orderBy?: UserReviewGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserReviewGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserReviewGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserReview model
+   */
+  readonly fields: UserReviewFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserReview.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserReviewClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    author<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    target<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserReview model
+   */
+  interface UserReviewFieldRefs {
+    readonly id: FieldRef<"UserReview", 'Int'>
+    readonly authorId: FieldRef<"UserReview", 'Int'>
+    readonly targetId: FieldRef<"UserReview", 'Int'>
+    readonly rating: FieldRef<"UserReview", 'Int'>
+    readonly comment: FieldRef<"UserReview", 'String'>
+    readonly createdAt: FieldRef<"UserReview", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserReview findUnique
+   */
+  export type UserReviewFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * Filter, which UserReview to fetch.
+     */
+    where: UserReviewWhereUniqueInput
+  }
+
+  /**
+   * UserReview findUniqueOrThrow
+   */
+  export type UserReviewFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * Filter, which UserReview to fetch.
+     */
+    where: UserReviewWhereUniqueInput
+  }
+
+  /**
+   * UserReview findFirst
+   */
+  export type UserReviewFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * Filter, which UserReview to fetch.
+     */
+    where?: UserReviewWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserReviews to fetch.
+     */
+    orderBy?: UserReviewOrderByWithRelationInput | UserReviewOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserReviews.
+     */
+    cursor?: UserReviewWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserReviews from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserReviews.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserReviews.
+     */
+    distinct?: UserReviewScalarFieldEnum | UserReviewScalarFieldEnum[]
+  }
+
+  /**
+   * UserReview findFirstOrThrow
+   */
+  export type UserReviewFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * Filter, which UserReview to fetch.
+     */
+    where?: UserReviewWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserReviews to fetch.
+     */
+    orderBy?: UserReviewOrderByWithRelationInput | UserReviewOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserReviews.
+     */
+    cursor?: UserReviewWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserReviews from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserReviews.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserReviews.
+     */
+    distinct?: UserReviewScalarFieldEnum | UserReviewScalarFieldEnum[]
+  }
+
+  /**
+   * UserReview findMany
+   */
+  export type UserReviewFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * Filter, which UserReviews to fetch.
+     */
+    where?: UserReviewWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserReviews to fetch.
+     */
+    orderBy?: UserReviewOrderByWithRelationInput | UserReviewOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserReviews.
+     */
+    cursor?: UserReviewWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserReviews from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserReviews.
+     */
+    skip?: number
+    distinct?: UserReviewScalarFieldEnum | UserReviewScalarFieldEnum[]
+  }
+
+  /**
+   * UserReview create
+   */
+  export type UserReviewCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserReview.
+     */
+    data: XOR<UserReviewCreateInput, UserReviewUncheckedCreateInput>
+  }
+
+  /**
+   * UserReview createMany
+   */
+  export type UserReviewCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserReviews.
+     */
+    data: UserReviewCreateManyInput | UserReviewCreateManyInput[]
+  }
+
+  /**
+   * UserReview createManyAndReturn
+   */
+  export type UserReviewCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserReviews.
+     */
+    data: UserReviewCreateManyInput | UserReviewCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserReview update
+   */
+  export type UserReviewUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserReview.
+     */
+    data: XOR<UserReviewUpdateInput, UserReviewUncheckedUpdateInput>
+    /**
+     * Choose, which UserReview to update.
+     */
+    where: UserReviewWhereUniqueInput
+  }
+
+  /**
+   * UserReview updateMany
+   */
+  export type UserReviewUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserReviews.
+     */
+    data: XOR<UserReviewUpdateManyMutationInput, UserReviewUncheckedUpdateManyInput>
+    /**
+     * Filter which UserReviews to update
+     */
+    where?: UserReviewWhereInput
+    /**
+     * Limit how many UserReviews to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserReview updateManyAndReturn
+   */
+  export type UserReviewUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * The data used to update UserReviews.
+     */
+    data: XOR<UserReviewUpdateManyMutationInput, UserReviewUncheckedUpdateManyInput>
+    /**
+     * Filter which UserReviews to update
+     */
+    where?: UserReviewWhereInput
+    /**
+     * Limit how many UserReviews to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserReview upsert
+   */
+  export type UserReviewUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserReview to update in case it exists.
+     */
+    where: UserReviewWhereUniqueInput
+    /**
+     * In case the UserReview found by the `where` argument doesn't exist, create a new UserReview with this data.
+     */
+    create: XOR<UserReviewCreateInput, UserReviewUncheckedCreateInput>
+    /**
+     * In case the UserReview was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserReviewUpdateInput, UserReviewUncheckedUpdateInput>
+  }
+
+  /**
+   * UserReview delete
+   */
+  export type UserReviewDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
+    /**
+     * Filter which UserReview to delete.
+     */
+    where: UserReviewWhereUniqueInput
+  }
+
+  /**
+   * UserReview deleteMany
+   */
+  export type UserReviewDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserReviews to delete
+     */
+    where?: UserReviewWhereInput
+    /**
+     * Limit how many UserReviews to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserReview without action
+   */
+  export type UserReviewDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserReview
+     */
+    select?: UserReviewSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserReview
+     */
+    omit?: UserReviewOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserReviewInclude<ExtArgs> | null
   }
 
 
@@ -10188,6 +11502,8 @@ export namespace Prisma {
     district: 'district',
     subDistrict: 'subDistrict',
     zipCode: 'zipCode',
+    avatar: 'avatar',
+    banner: 'banner',
     birthDate: 'birthDate',
     occupation: 'occupation',
     income: 'income',
@@ -10203,6 +11519,18 @@ export namespace Prisma {
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+  export const UserReviewScalarFieldEnum: {
+    id: 'id',
+    authorId: 'authorId',
+    targetId: 'targetId',
+    rating: 'rating',
+    comment: 'comment',
+    createdAt: 'createdAt'
+  };
+
+  export type UserReviewScalarFieldEnum = (typeof UserReviewScalarFieldEnum)[keyof typeof UserReviewScalarFieldEnum]
 
 
   export const JobScalarFieldEnum: {
@@ -10367,6 +11695,8 @@ export namespace Prisma {
     district?: StringNullableFilter<"User"> | string | null
     subDistrict?: StringNullableFilter<"User"> | string | null
     zipCode?: StringNullableFilter<"User"> | string | null
+    avatar?: StringNullableFilter<"User"> | string | null
+    banner?: StringNullableFilter<"User"> | string | null
     birthDate?: DateTimeNullableFilter<"User"> | Date | string | null
     occupation?: StringNullableFilter<"User"> | string | null
     income?: IntNullableFilter<"User"> | number | null
@@ -10386,6 +11716,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationListRelationFilter
     conversationsAsWorker?: ConversationListRelationFilter
     messagesSent?: MessageListRelationFilter
+    userReviewsWritten?: UserReviewListRelationFilter
+    userReviewsReceived?: UserReviewListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -10402,6 +11734,8 @@ export namespace Prisma {
     district?: SortOrderInput | SortOrder
     subDistrict?: SortOrderInput | SortOrder
     zipCode?: SortOrderInput | SortOrder
+    avatar?: SortOrderInput | SortOrder
+    banner?: SortOrderInput | SortOrder
     birthDate?: SortOrderInput | SortOrder
     occupation?: SortOrderInput | SortOrder
     income?: SortOrderInput | SortOrder
@@ -10421,6 +11755,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationOrderByRelationAggregateInput
     conversationsAsWorker?: ConversationOrderByRelationAggregateInput
     messagesSent?: MessageOrderByRelationAggregateInput
+    userReviewsWritten?: UserReviewOrderByRelationAggregateInput
+    userReviewsReceived?: UserReviewOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -10440,6 +11776,8 @@ export namespace Prisma {
     district?: StringNullableFilter<"User"> | string | null
     subDistrict?: StringNullableFilter<"User"> | string | null
     zipCode?: StringNullableFilter<"User"> | string | null
+    avatar?: StringNullableFilter<"User"> | string | null
+    banner?: StringNullableFilter<"User"> | string | null
     birthDate?: DateTimeNullableFilter<"User"> | Date | string | null
     occupation?: StringNullableFilter<"User"> | string | null
     income?: IntNullableFilter<"User"> | number | null
@@ -10459,6 +11797,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationListRelationFilter
     conversationsAsWorker?: ConversationListRelationFilter
     messagesSent?: MessageListRelationFilter
+    userReviewsWritten?: UserReviewListRelationFilter
+    userReviewsReceived?: UserReviewListRelationFilter
   }, "id" | "phone" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -10475,6 +11815,8 @@ export namespace Prisma {
     district?: SortOrderInput | SortOrder
     subDistrict?: SortOrderInput | SortOrder
     zipCode?: SortOrderInput | SortOrder
+    avatar?: SortOrderInput | SortOrder
+    banner?: SortOrderInput | SortOrder
     birthDate?: SortOrderInput | SortOrder
     occupation?: SortOrderInput | SortOrder
     income?: SortOrderInput | SortOrder
@@ -10511,6 +11853,8 @@ export namespace Prisma {
     district?: StringNullableWithAggregatesFilter<"User"> | string | null
     subDistrict?: StringNullableWithAggregatesFilter<"User"> | string | null
     zipCode?: StringNullableWithAggregatesFilter<"User"> | string | null
+    avatar?: StringNullableWithAggregatesFilter<"User"> | string | null
+    banner?: StringNullableWithAggregatesFilter<"User"> | string | null
     birthDate?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     occupation?: StringNullableWithAggregatesFilter<"User"> | string | null
     income?: IntNullableWithAggregatesFilter<"User"> | number | null
@@ -10523,6 +11867,72 @@ export namespace Prisma {
     profileCompleted?: BoolWithAggregatesFilter<"User"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  }
+
+  export type UserReviewWhereInput = {
+    AND?: UserReviewWhereInput | UserReviewWhereInput[]
+    OR?: UserReviewWhereInput[]
+    NOT?: UserReviewWhereInput | UserReviewWhereInput[]
+    id?: IntFilter<"UserReview"> | number
+    authorId?: IntFilter<"UserReview"> | number
+    targetId?: IntFilter<"UserReview"> | number
+    rating?: IntFilter<"UserReview"> | number
+    comment?: StringFilter<"UserReview"> | string
+    createdAt?: DateTimeFilter<"UserReview"> | Date | string
+    author?: XOR<UserScalarRelationFilter, UserWhereInput>
+    target?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type UserReviewOrderByWithRelationInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+    targetId?: SortOrder
+    rating?: SortOrder
+    comment?: SortOrder
+    createdAt?: SortOrder
+    author?: UserOrderByWithRelationInput
+    target?: UserOrderByWithRelationInput
+  }
+
+  export type UserReviewWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    authorId_targetId?: UserReviewAuthorIdTargetIdCompoundUniqueInput
+    AND?: UserReviewWhereInput | UserReviewWhereInput[]
+    OR?: UserReviewWhereInput[]
+    NOT?: UserReviewWhereInput | UserReviewWhereInput[]
+    authorId?: IntFilter<"UserReview"> | number
+    targetId?: IntFilter<"UserReview"> | number
+    rating?: IntFilter<"UserReview"> | number
+    comment?: StringFilter<"UserReview"> | string
+    createdAt?: DateTimeFilter<"UserReview"> | Date | string
+    author?: XOR<UserScalarRelationFilter, UserWhereInput>
+    target?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "authorId_targetId">
+
+  export type UserReviewOrderByWithAggregationInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+    targetId?: SortOrder
+    rating?: SortOrder
+    comment?: SortOrder
+    createdAt?: SortOrder
+    _count?: UserReviewCountOrderByAggregateInput
+    _avg?: UserReviewAvgOrderByAggregateInput
+    _max?: UserReviewMaxOrderByAggregateInput
+    _min?: UserReviewMinOrderByAggregateInput
+    _sum?: UserReviewSumOrderByAggregateInput
+  }
+
+  export type UserReviewScalarWhereWithAggregatesInput = {
+    AND?: UserReviewScalarWhereWithAggregatesInput | UserReviewScalarWhereWithAggregatesInput[]
+    OR?: UserReviewScalarWhereWithAggregatesInput[]
+    NOT?: UserReviewScalarWhereWithAggregatesInput | UserReviewScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"UserReview"> | number
+    authorId?: IntWithAggregatesFilter<"UserReview"> | number
+    targetId?: IntWithAggregatesFilter<"UserReview"> | number
+    rating?: IntWithAggregatesFilter<"UserReview"> | number
+    comment?: StringWithAggregatesFilter<"UserReview"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"UserReview"> | Date | string
   }
 
   export type JobWhereInput = {
@@ -11010,6 +12420,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -11029,6 +12441,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -11045,6 +12459,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -11064,6 +12480,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
   }
 
   export type UserUpdateInput = {
@@ -11079,6 +12497,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11098,6 +12518,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -11114,6 +12536,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11133,6 +12557,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -11149,6 +12575,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -11176,6 +12604,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11204,6 +12634,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11216,6 +12648,64 @@ export namespace Prisma {
     profileCompleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserReviewCreateInput = {
+    rating: number
+    comment: string
+    createdAt?: Date | string
+    author: UserCreateNestedOneWithoutUserReviewsWrittenInput
+    target: UserCreateNestedOneWithoutUserReviewsReceivedInput
+  }
+
+  export type UserReviewUncheckedCreateInput = {
+    id?: number
+    authorId: number
+    targetId: number
+    rating: number
+    comment: string
+    createdAt?: Date | string
+  }
+
+  export type UserReviewUpdateInput = {
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    author?: UserUpdateOneRequiredWithoutUserReviewsWrittenNestedInput
+    target?: UserUpdateOneRequiredWithoutUserReviewsReceivedNestedInput
+  }
+
+  export type UserReviewUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    authorId?: IntFieldUpdateOperationsInput | number
+    targetId?: IntFieldUpdateOperationsInput | number
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserReviewCreateManyInput = {
+    id?: number
+    authorId: number
+    targetId: number
+    rating: number
+    comment: string
+    createdAt?: Date | string
+  }
+
+  export type UserReviewUpdateManyMutationInput = {
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserReviewUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    authorId?: IntFieldUpdateOperationsInput | number
+    targetId?: IntFieldUpdateOperationsInput | number
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type JobCreateInput = {
@@ -11794,6 +13284,12 @@ export namespace Prisma {
     none?: MessageWhereInput
   }
 
+  export type UserReviewListRelationFilter = {
+    every?: UserReviewWhereInput
+    some?: UserReviewWhereInput
+    none?: UserReviewWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -11823,6 +13319,10 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type UserReviewOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     phone?: SortOrder
@@ -11837,6 +13337,8 @@ export namespace Prisma {
     district?: SortOrder
     subDistrict?: SortOrder
     zipCode?: SortOrder
+    avatar?: SortOrder
+    banner?: SortOrder
     birthDate?: SortOrder
     occupation?: SortOrder
     income?: SortOrder
@@ -11870,6 +13372,8 @@ export namespace Prisma {
     district?: SortOrder
     subDistrict?: SortOrder
     zipCode?: SortOrder
+    avatar?: SortOrder
+    banner?: SortOrder
     birthDate?: SortOrder
     occupation?: SortOrder
     income?: SortOrder
@@ -11898,6 +13402,8 @@ export namespace Prisma {
     district?: SortOrder
     subDistrict?: SortOrder
     zipCode?: SortOrder
+    avatar?: SortOrder
+    banner?: SortOrder
     birthDate?: SortOrder
     occupation?: SortOrder
     income?: SortOrder
@@ -12019,6 +13525,57 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type UserScalarRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
+  }
+
+  export type UserReviewAuthorIdTargetIdCompoundUniqueInput = {
+    authorId: number
+    targetId: number
+  }
+
+  export type UserReviewCountOrderByAggregateInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+    targetId?: SortOrder
+    rating?: SortOrder
+    comment?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserReviewAvgOrderByAggregateInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+    targetId?: SortOrder
+    rating?: SortOrder
+  }
+
+  export type UserReviewMaxOrderByAggregateInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+    targetId?: SortOrder
+    rating?: SortOrder
+    comment?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserReviewMinOrderByAggregateInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+    targetId?: SortOrder
+    rating?: SortOrder
+    comment?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserReviewSumOrderByAggregateInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+    targetId?: SortOrder
+    rating?: SortOrder
+  }
+
   export type FloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | null
@@ -12124,11 +13681,6 @@ export namespace Prisma {
   export type JobScalarRelationFilter = {
     is?: JobWhereInput
     isNot?: JobWhereInput
-  }
-
-  export type UserScalarRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
   }
 
   export type ApplicationJobIdWorkerIdCompoundUniqueInput = {
@@ -12419,6 +13971,20 @@ export namespace Prisma {
     connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
   }
 
+  export type UserReviewCreateNestedManyWithoutAuthorInput = {
+    create?: XOR<UserReviewCreateWithoutAuthorInput, UserReviewUncheckedCreateWithoutAuthorInput> | UserReviewCreateWithoutAuthorInput[] | UserReviewUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: UserReviewCreateOrConnectWithoutAuthorInput | UserReviewCreateOrConnectWithoutAuthorInput[]
+    createMany?: UserReviewCreateManyAuthorInputEnvelope
+    connect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+  }
+
+  export type UserReviewCreateNestedManyWithoutTargetInput = {
+    create?: XOR<UserReviewCreateWithoutTargetInput, UserReviewUncheckedCreateWithoutTargetInput> | UserReviewCreateWithoutTargetInput[] | UserReviewUncheckedCreateWithoutTargetInput[]
+    connectOrCreate?: UserReviewCreateOrConnectWithoutTargetInput | UserReviewCreateOrConnectWithoutTargetInput[]
+    createMany?: UserReviewCreateManyTargetInputEnvelope
+    connect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+  }
+
   export type JobUncheckedCreateNestedManyWithoutPostedByInput = {
     create?: XOR<JobCreateWithoutPostedByInput, JobUncheckedCreateWithoutPostedByInput> | JobCreateWithoutPostedByInput[] | JobUncheckedCreateWithoutPostedByInput[]
     connectOrCreate?: JobCreateOrConnectWithoutPostedByInput | JobCreateOrConnectWithoutPostedByInput[]
@@ -12466,6 +14032,20 @@ export namespace Prisma {
     connectOrCreate?: MessageCreateOrConnectWithoutSenderInput | MessageCreateOrConnectWithoutSenderInput[]
     createMany?: MessageCreateManySenderInputEnvelope
     connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+  }
+
+  export type UserReviewUncheckedCreateNestedManyWithoutAuthorInput = {
+    create?: XOR<UserReviewCreateWithoutAuthorInput, UserReviewUncheckedCreateWithoutAuthorInput> | UserReviewCreateWithoutAuthorInput[] | UserReviewUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: UserReviewCreateOrConnectWithoutAuthorInput | UserReviewCreateOrConnectWithoutAuthorInput[]
+    createMany?: UserReviewCreateManyAuthorInputEnvelope
+    connect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+  }
+
+  export type UserReviewUncheckedCreateNestedManyWithoutTargetInput = {
+    create?: XOR<UserReviewCreateWithoutTargetInput, UserReviewUncheckedCreateWithoutTargetInput> | UserReviewCreateWithoutTargetInput[] | UserReviewUncheckedCreateWithoutTargetInput[]
+    connectOrCreate?: UserReviewCreateOrConnectWithoutTargetInput | UserReviewCreateOrConnectWithoutTargetInput[]
+    createMany?: UserReviewCreateManyTargetInputEnvelope
+    connect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -12594,6 +14174,34 @@ export namespace Prisma {
     deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
   }
 
+  export type UserReviewUpdateManyWithoutAuthorNestedInput = {
+    create?: XOR<UserReviewCreateWithoutAuthorInput, UserReviewUncheckedCreateWithoutAuthorInput> | UserReviewCreateWithoutAuthorInput[] | UserReviewUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: UserReviewCreateOrConnectWithoutAuthorInput | UserReviewCreateOrConnectWithoutAuthorInput[]
+    upsert?: UserReviewUpsertWithWhereUniqueWithoutAuthorInput | UserReviewUpsertWithWhereUniqueWithoutAuthorInput[]
+    createMany?: UserReviewCreateManyAuthorInputEnvelope
+    set?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    disconnect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    delete?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    connect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    update?: UserReviewUpdateWithWhereUniqueWithoutAuthorInput | UserReviewUpdateWithWhereUniqueWithoutAuthorInput[]
+    updateMany?: UserReviewUpdateManyWithWhereWithoutAuthorInput | UserReviewUpdateManyWithWhereWithoutAuthorInput[]
+    deleteMany?: UserReviewScalarWhereInput | UserReviewScalarWhereInput[]
+  }
+
+  export type UserReviewUpdateManyWithoutTargetNestedInput = {
+    create?: XOR<UserReviewCreateWithoutTargetInput, UserReviewUncheckedCreateWithoutTargetInput> | UserReviewCreateWithoutTargetInput[] | UserReviewUncheckedCreateWithoutTargetInput[]
+    connectOrCreate?: UserReviewCreateOrConnectWithoutTargetInput | UserReviewCreateOrConnectWithoutTargetInput[]
+    upsert?: UserReviewUpsertWithWhereUniqueWithoutTargetInput | UserReviewUpsertWithWhereUniqueWithoutTargetInput[]
+    createMany?: UserReviewCreateManyTargetInputEnvelope
+    set?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    disconnect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    delete?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    connect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    update?: UserReviewUpdateWithWhereUniqueWithoutTargetInput | UserReviewUpdateWithWhereUniqueWithoutTargetInput[]
+    updateMany?: UserReviewUpdateManyWithWhereWithoutTargetInput | UserReviewUpdateManyWithWhereWithoutTargetInput[]
+    deleteMany?: UserReviewScalarWhereInput | UserReviewScalarWhereInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -12698,6 +14306,62 @@ export namespace Prisma {
     update?: MessageUpdateWithWhereUniqueWithoutSenderInput | MessageUpdateWithWhereUniqueWithoutSenderInput[]
     updateMany?: MessageUpdateManyWithWhereWithoutSenderInput | MessageUpdateManyWithWhereWithoutSenderInput[]
     deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
+  }
+
+  export type UserReviewUncheckedUpdateManyWithoutAuthorNestedInput = {
+    create?: XOR<UserReviewCreateWithoutAuthorInput, UserReviewUncheckedCreateWithoutAuthorInput> | UserReviewCreateWithoutAuthorInput[] | UserReviewUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: UserReviewCreateOrConnectWithoutAuthorInput | UserReviewCreateOrConnectWithoutAuthorInput[]
+    upsert?: UserReviewUpsertWithWhereUniqueWithoutAuthorInput | UserReviewUpsertWithWhereUniqueWithoutAuthorInput[]
+    createMany?: UserReviewCreateManyAuthorInputEnvelope
+    set?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    disconnect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    delete?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    connect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    update?: UserReviewUpdateWithWhereUniqueWithoutAuthorInput | UserReviewUpdateWithWhereUniqueWithoutAuthorInput[]
+    updateMany?: UserReviewUpdateManyWithWhereWithoutAuthorInput | UserReviewUpdateManyWithWhereWithoutAuthorInput[]
+    deleteMany?: UserReviewScalarWhereInput | UserReviewScalarWhereInput[]
+  }
+
+  export type UserReviewUncheckedUpdateManyWithoutTargetNestedInput = {
+    create?: XOR<UserReviewCreateWithoutTargetInput, UserReviewUncheckedCreateWithoutTargetInput> | UserReviewCreateWithoutTargetInput[] | UserReviewUncheckedCreateWithoutTargetInput[]
+    connectOrCreate?: UserReviewCreateOrConnectWithoutTargetInput | UserReviewCreateOrConnectWithoutTargetInput[]
+    upsert?: UserReviewUpsertWithWhereUniqueWithoutTargetInput | UserReviewUpsertWithWhereUniqueWithoutTargetInput[]
+    createMany?: UserReviewCreateManyTargetInputEnvelope
+    set?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    disconnect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    delete?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    connect?: UserReviewWhereUniqueInput | UserReviewWhereUniqueInput[]
+    update?: UserReviewUpdateWithWhereUniqueWithoutTargetInput | UserReviewUpdateWithWhereUniqueWithoutTargetInput[]
+    updateMany?: UserReviewUpdateManyWithWhereWithoutTargetInput | UserReviewUpdateManyWithWhereWithoutTargetInput[]
+    deleteMany?: UserReviewScalarWhereInput | UserReviewScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutUserReviewsWrittenInput = {
+    create?: XOR<UserCreateWithoutUserReviewsWrittenInput, UserUncheckedCreateWithoutUserReviewsWrittenInput>
+    connectOrCreate?: UserCreateOrConnectWithoutUserReviewsWrittenInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutUserReviewsReceivedInput = {
+    create?: XOR<UserCreateWithoutUserReviewsReceivedInput, UserUncheckedCreateWithoutUserReviewsReceivedInput>
+    connectOrCreate?: UserCreateOrConnectWithoutUserReviewsReceivedInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutUserReviewsWrittenNestedInput = {
+    create?: XOR<UserCreateWithoutUserReviewsWrittenInput, UserUncheckedCreateWithoutUserReviewsWrittenInput>
+    connectOrCreate?: UserCreateOrConnectWithoutUserReviewsWrittenInput
+    upsert?: UserUpsertWithoutUserReviewsWrittenInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutUserReviewsWrittenInput, UserUpdateWithoutUserReviewsWrittenInput>, UserUncheckedUpdateWithoutUserReviewsWrittenInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutUserReviewsReceivedNestedInput = {
+    create?: XOR<UserCreateWithoutUserReviewsReceivedInput, UserUncheckedCreateWithoutUserReviewsReceivedInput>
+    connectOrCreate?: UserCreateOrConnectWithoutUserReviewsReceivedInput
+    upsert?: UserUpsertWithoutUserReviewsReceivedInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutUserReviewsReceivedInput, UserUpdateWithoutUserReviewsReceivedInput>, UserUncheckedUpdateWithoutUserReviewsReceivedInput>
   }
 
   export type UserCreateNestedOneWithoutJobsPostedInput = {
@@ -13457,6 +15121,54 @@ export namespace Prisma {
     data: MessageCreateManySenderInput | MessageCreateManySenderInput[]
   }
 
+  export type UserReviewCreateWithoutAuthorInput = {
+    rating: number
+    comment: string
+    createdAt?: Date | string
+    target: UserCreateNestedOneWithoutUserReviewsReceivedInput
+  }
+
+  export type UserReviewUncheckedCreateWithoutAuthorInput = {
+    id?: number
+    targetId: number
+    rating: number
+    comment: string
+    createdAt?: Date | string
+  }
+
+  export type UserReviewCreateOrConnectWithoutAuthorInput = {
+    where: UserReviewWhereUniqueInput
+    create: XOR<UserReviewCreateWithoutAuthorInput, UserReviewUncheckedCreateWithoutAuthorInput>
+  }
+
+  export type UserReviewCreateManyAuthorInputEnvelope = {
+    data: UserReviewCreateManyAuthorInput | UserReviewCreateManyAuthorInput[]
+  }
+
+  export type UserReviewCreateWithoutTargetInput = {
+    rating: number
+    comment: string
+    createdAt?: Date | string
+    author: UserCreateNestedOneWithoutUserReviewsWrittenInput
+  }
+
+  export type UserReviewUncheckedCreateWithoutTargetInput = {
+    id?: number
+    authorId: number
+    rating: number
+    comment: string
+    createdAt?: Date | string
+  }
+
+  export type UserReviewCreateOrConnectWithoutTargetInput = {
+    where: UserReviewWhereUniqueInput
+    create: XOR<UserReviewCreateWithoutTargetInput, UserReviewUncheckedCreateWithoutTargetInput>
+  }
+
+  export type UserReviewCreateManyTargetInputEnvelope = {
+    data: UserReviewCreateManyTargetInput | UserReviewCreateManyTargetInput[]
+  }
+
   export type JobUpsertWithWhereUniqueWithoutPostedByInput = {
     where: JobWhereUniqueInput
     update: XOR<JobUpdateWithoutPostedByInput, JobUncheckedUpdateWithoutPostedByInput>
@@ -13655,6 +15367,382 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Message"> | Date | string
   }
 
+  export type UserReviewUpsertWithWhereUniqueWithoutAuthorInput = {
+    where: UserReviewWhereUniqueInput
+    update: XOR<UserReviewUpdateWithoutAuthorInput, UserReviewUncheckedUpdateWithoutAuthorInput>
+    create: XOR<UserReviewCreateWithoutAuthorInput, UserReviewUncheckedCreateWithoutAuthorInput>
+  }
+
+  export type UserReviewUpdateWithWhereUniqueWithoutAuthorInput = {
+    where: UserReviewWhereUniqueInput
+    data: XOR<UserReviewUpdateWithoutAuthorInput, UserReviewUncheckedUpdateWithoutAuthorInput>
+  }
+
+  export type UserReviewUpdateManyWithWhereWithoutAuthorInput = {
+    where: UserReviewScalarWhereInput
+    data: XOR<UserReviewUpdateManyMutationInput, UserReviewUncheckedUpdateManyWithoutAuthorInput>
+  }
+
+  export type UserReviewScalarWhereInput = {
+    AND?: UserReviewScalarWhereInput | UserReviewScalarWhereInput[]
+    OR?: UserReviewScalarWhereInput[]
+    NOT?: UserReviewScalarWhereInput | UserReviewScalarWhereInput[]
+    id?: IntFilter<"UserReview"> | number
+    authorId?: IntFilter<"UserReview"> | number
+    targetId?: IntFilter<"UserReview"> | number
+    rating?: IntFilter<"UserReview"> | number
+    comment?: StringFilter<"UserReview"> | string
+    createdAt?: DateTimeFilter<"UserReview"> | Date | string
+  }
+
+  export type UserReviewUpsertWithWhereUniqueWithoutTargetInput = {
+    where: UserReviewWhereUniqueInput
+    update: XOR<UserReviewUpdateWithoutTargetInput, UserReviewUncheckedUpdateWithoutTargetInput>
+    create: XOR<UserReviewCreateWithoutTargetInput, UserReviewUncheckedCreateWithoutTargetInput>
+  }
+
+  export type UserReviewUpdateWithWhereUniqueWithoutTargetInput = {
+    where: UserReviewWhereUniqueInput
+    data: XOR<UserReviewUpdateWithoutTargetInput, UserReviewUncheckedUpdateWithoutTargetInput>
+  }
+
+  export type UserReviewUpdateManyWithWhereWithoutTargetInput = {
+    where: UserReviewScalarWhereInput
+    data: XOR<UserReviewUpdateManyMutationInput, UserReviewUncheckedUpdateManyWithoutTargetInput>
+  }
+
+  export type UserCreateWithoutUserReviewsWrittenInput = {
+    phone?: string | null
+    email?: string | null
+    role?: string
+    passwordHash?: string | null
+    firstName?: string | null
+    lastName?: string | null
+    idCard?: string | null
+    address?: string | null
+    province?: string | null
+    district?: string | null
+    subDistrict?: string | null
+    zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
+    birthDate?: Date | string | null
+    occupation?: string | null
+    income?: number | null
+    education?: string | null
+    certificates?: string | null
+    idCardFront?: string | null
+    idCardBack?: string | null
+    idCardSelfie?: string | null
+    faceScan?: string | null
+    profileCompleted?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    jobsPosted?: JobCreateNestedManyWithoutPostedByInput
+    applicationsSubmitted?: ApplicationCreateNestedManyWithoutWorkerInput
+    reviewsWritten?: ReviewCreateNestedManyWithoutAuthorInput
+    workerPosts?: WorkerPostCreateNestedManyWithoutWorkerInput
+    conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
+    conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
+    messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
+  }
+
+  export type UserUncheckedCreateWithoutUserReviewsWrittenInput = {
+    id?: number
+    phone?: string | null
+    email?: string | null
+    role?: string
+    passwordHash?: string | null
+    firstName?: string | null
+    lastName?: string | null
+    idCard?: string | null
+    address?: string | null
+    province?: string | null
+    district?: string | null
+    subDistrict?: string | null
+    zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
+    birthDate?: Date | string | null
+    occupation?: string | null
+    income?: number | null
+    education?: string | null
+    certificates?: string | null
+    idCardFront?: string | null
+    idCardBack?: string | null
+    idCardSelfie?: string | null
+    faceScan?: string | null
+    profileCompleted?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    jobsPosted?: JobUncheckedCreateNestedManyWithoutPostedByInput
+    applicationsSubmitted?: ApplicationUncheckedCreateNestedManyWithoutWorkerInput
+    reviewsWritten?: ReviewUncheckedCreateNestedManyWithoutAuthorInput
+    workerPosts?: WorkerPostUncheckedCreateNestedManyWithoutWorkerInput
+    conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
+    conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
+    messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
+  }
+
+  export type UserCreateOrConnectWithoutUserReviewsWrittenInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutUserReviewsWrittenInput, UserUncheckedCreateWithoutUserReviewsWrittenInput>
+  }
+
+  export type UserCreateWithoutUserReviewsReceivedInput = {
+    phone?: string | null
+    email?: string | null
+    role?: string
+    passwordHash?: string | null
+    firstName?: string | null
+    lastName?: string | null
+    idCard?: string | null
+    address?: string | null
+    province?: string | null
+    district?: string | null
+    subDistrict?: string | null
+    zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
+    birthDate?: Date | string | null
+    occupation?: string | null
+    income?: number | null
+    education?: string | null
+    certificates?: string | null
+    idCardFront?: string | null
+    idCardBack?: string | null
+    idCardSelfie?: string | null
+    faceScan?: string | null
+    profileCompleted?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    jobsPosted?: JobCreateNestedManyWithoutPostedByInput
+    applicationsSubmitted?: ApplicationCreateNestedManyWithoutWorkerInput
+    reviewsWritten?: ReviewCreateNestedManyWithoutAuthorInput
+    workerPosts?: WorkerPostCreateNestedManyWithoutWorkerInput
+    conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
+    conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
+    messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+  }
+
+  export type UserUncheckedCreateWithoutUserReviewsReceivedInput = {
+    id?: number
+    phone?: string | null
+    email?: string | null
+    role?: string
+    passwordHash?: string | null
+    firstName?: string | null
+    lastName?: string | null
+    idCard?: string | null
+    address?: string | null
+    province?: string | null
+    district?: string | null
+    subDistrict?: string | null
+    zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
+    birthDate?: Date | string | null
+    occupation?: string | null
+    income?: number | null
+    education?: string | null
+    certificates?: string | null
+    idCardFront?: string | null
+    idCardBack?: string | null
+    idCardSelfie?: string | null
+    faceScan?: string | null
+    profileCompleted?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    jobsPosted?: JobUncheckedCreateNestedManyWithoutPostedByInput
+    applicationsSubmitted?: ApplicationUncheckedCreateNestedManyWithoutWorkerInput
+    reviewsWritten?: ReviewUncheckedCreateNestedManyWithoutAuthorInput
+    workerPosts?: WorkerPostUncheckedCreateNestedManyWithoutWorkerInput
+    conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
+    conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
+    messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+  }
+
+  export type UserCreateOrConnectWithoutUserReviewsReceivedInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutUserReviewsReceivedInput, UserUncheckedCreateWithoutUserReviewsReceivedInput>
+  }
+
+  export type UserUpsertWithoutUserReviewsWrittenInput = {
+    update: XOR<UserUpdateWithoutUserReviewsWrittenInput, UserUncheckedUpdateWithoutUserReviewsWrittenInput>
+    create: XOR<UserCreateWithoutUserReviewsWrittenInput, UserUncheckedCreateWithoutUserReviewsWrittenInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutUserReviewsWrittenInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutUserReviewsWrittenInput, UserUncheckedUpdateWithoutUserReviewsWrittenInput>
+  }
+
+  export type UserUpdateWithoutUserReviewsWrittenInput = {
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    idCard?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    province?: NullableStringFieldUpdateOperationsInput | string | null
+    district?: NullableStringFieldUpdateOperationsInput | string | null
+    subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
+    zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
+    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    occupation?: NullableStringFieldUpdateOperationsInput | string | null
+    income?: NullableIntFieldUpdateOperationsInput | number | null
+    education?: NullableStringFieldUpdateOperationsInput | string | null
+    certificates?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardFront?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardBack?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardSelfie?: NullableStringFieldUpdateOperationsInput | string | null
+    faceScan?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompleted?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    jobsPosted?: JobUpdateManyWithoutPostedByNestedInput
+    applicationsSubmitted?: ApplicationUpdateManyWithoutWorkerNestedInput
+    reviewsWritten?: ReviewUpdateManyWithoutAuthorNestedInput
+    workerPosts?: WorkerPostUpdateManyWithoutWorkerNestedInput
+    conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
+    conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
+    messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutUserReviewsWrittenInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    idCard?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    province?: NullableStringFieldUpdateOperationsInput | string | null
+    district?: NullableStringFieldUpdateOperationsInput | string | null
+    subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
+    zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
+    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    occupation?: NullableStringFieldUpdateOperationsInput | string | null
+    income?: NullableIntFieldUpdateOperationsInput | number | null
+    education?: NullableStringFieldUpdateOperationsInput | string | null
+    certificates?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardFront?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardBack?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardSelfie?: NullableStringFieldUpdateOperationsInput | string | null
+    faceScan?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompleted?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    jobsPosted?: JobUncheckedUpdateManyWithoutPostedByNestedInput
+    applicationsSubmitted?: ApplicationUncheckedUpdateManyWithoutWorkerNestedInput
+    reviewsWritten?: ReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    workerPosts?: WorkerPostUncheckedUpdateManyWithoutWorkerNestedInput
+    conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
+    conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
+    messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
+  }
+
+  export type UserUpsertWithoutUserReviewsReceivedInput = {
+    update: XOR<UserUpdateWithoutUserReviewsReceivedInput, UserUncheckedUpdateWithoutUserReviewsReceivedInput>
+    create: XOR<UserCreateWithoutUserReviewsReceivedInput, UserUncheckedCreateWithoutUserReviewsReceivedInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutUserReviewsReceivedInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutUserReviewsReceivedInput, UserUncheckedUpdateWithoutUserReviewsReceivedInput>
+  }
+
+  export type UserUpdateWithoutUserReviewsReceivedInput = {
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    idCard?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    province?: NullableStringFieldUpdateOperationsInput | string | null
+    district?: NullableStringFieldUpdateOperationsInput | string | null
+    subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
+    zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
+    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    occupation?: NullableStringFieldUpdateOperationsInput | string | null
+    income?: NullableIntFieldUpdateOperationsInput | number | null
+    education?: NullableStringFieldUpdateOperationsInput | string | null
+    certificates?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardFront?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardBack?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardSelfie?: NullableStringFieldUpdateOperationsInput | string | null
+    faceScan?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompleted?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    jobsPosted?: JobUpdateManyWithoutPostedByNestedInput
+    applicationsSubmitted?: ApplicationUpdateManyWithoutWorkerNestedInput
+    reviewsWritten?: ReviewUpdateManyWithoutAuthorNestedInput
+    workerPosts?: WorkerPostUpdateManyWithoutWorkerNestedInput
+    conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
+    conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
+    messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutUserReviewsReceivedInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    idCard?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    province?: NullableStringFieldUpdateOperationsInput | string | null
+    district?: NullableStringFieldUpdateOperationsInput | string | null
+    subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
+    zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
+    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    occupation?: NullableStringFieldUpdateOperationsInput | string | null
+    income?: NullableIntFieldUpdateOperationsInput | number | null
+    education?: NullableStringFieldUpdateOperationsInput | string | null
+    certificates?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardFront?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardBack?: NullableStringFieldUpdateOperationsInput | string | null
+    idCardSelfie?: NullableStringFieldUpdateOperationsInput | string | null
+    faceScan?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompleted?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    jobsPosted?: JobUncheckedUpdateManyWithoutPostedByNestedInput
+    applicationsSubmitted?: ApplicationUncheckedUpdateManyWithoutWorkerNestedInput
+    reviewsWritten?: ReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    workerPosts?: WorkerPostUncheckedUpdateManyWithoutWorkerNestedInput
+    conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
+    conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
+    messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+  }
+
   export type UserCreateWithoutJobsPostedInput = {
     phone?: string | null
     email?: string | null
@@ -13668,6 +15756,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -13686,6 +15776,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
   }
 
   export type UserUncheckedCreateWithoutJobsPostedInput = {
@@ -13702,6 +15794,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -13720,6 +15814,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
   }
 
   export type UserCreateOrConnectWithoutJobsPostedInput = {
@@ -13829,6 +15925,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13847,6 +15945,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUncheckedUpdateWithoutJobsPostedInput = {
@@ -13863,6 +15963,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13881,6 +15983,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
   }
 
   export type ApplicationUpsertWithWhereUniqueWithoutJobInput = {
@@ -13988,6 +16092,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14006,6 +16112,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
   }
 
   export type UserUncheckedCreateWithoutApplicationsSubmittedInput = {
@@ -14022,6 +16130,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14040,6 +16150,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
   }
 
   export type UserCreateOrConnectWithoutApplicationsSubmittedInput = {
@@ -14121,6 +16233,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14139,6 +16253,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUncheckedUpdateWithoutApplicationsSubmittedInput = {
@@ -14155,6 +16271,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14173,6 +16291,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
   }
 
   export type JobCreateWithoutReviewsInput = {
@@ -14232,6 +16352,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14250,6 +16372,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
   }
 
   export type UserUncheckedCreateWithoutReviewsWrittenInput = {
@@ -14266,6 +16390,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14284,6 +16410,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
   }
 
   export type UserCreateOrConnectWithoutReviewsWrittenInput = {
@@ -14365,6 +16493,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14383,6 +16513,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReviewsWrittenInput = {
@@ -14399,6 +16531,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14417,6 +16551,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
   }
 
   export type UserCreateWithoutWorkerPostsInput = {
@@ -14432,6 +16568,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14450,6 +16588,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
   }
 
   export type UserUncheckedCreateWithoutWorkerPostsInput = {
@@ -14466,6 +16606,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14484,6 +16626,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
   }
 
   export type UserCreateOrConnectWithoutWorkerPostsInput = {
@@ -14515,6 +16659,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14533,6 +16679,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWorkerPostsInput = {
@@ -14549,6 +16697,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14567,6 +16717,8 @@ export namespace Prisma {
     conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
   }
 
   export type JobCreateWithoutConversationsInput = {
@@ -14626,6 +16778,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14644,6 +16798,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostCreateNestedManyWithoutWorkerInput
     conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
   }
 
   export type UserUncheckedCreateWithoutConversationsAsEmployerInput = {
@@ -14660,6 +16816,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14678,6 +16836,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUncheckedCreateNestedManyWithoutWorkerInput
     conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
     messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
   }
 
   export type UserCreateOrConnectWithoutConversationsAsEmployerInput = {
@@ -14698,6 +16858,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14716,6 +16878,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostCreateNestedManyWithoutWorkerInput
     conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
     messagesSent?: MessageCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
   }
 
   export type UserUncheckedCreateWithoutConversationsAsWorkerInput = {
@@ -14732,6 +16896,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -14750,6 +16916,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUncheckedCreateNestedManyWithoutWorkerInput
     conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
     messagesSent?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
   }
 
   export type UserCreateOrConnectWithoutConversationsAsWorkerInput = {
@@ -14855,6 +17023,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14873,6 +17043,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUpdateManyWithoutWorkerNestedInput
     conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUncheckedUpdateWithoutConversationsAsEmployerInput = {
@@ -14889,6 +17061,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14907,6 +17081,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUncheckedUpdateManyWithoutWorkerNestedInput
     conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
     messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUpsertWithoutConversationsAsWorkerInput = {
@@ -14933,6 +17109,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14951,6 +17129,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUpdateManyWithoutWorkerNestedInput
     conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
     messagesSent?: MessageUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUncheckedUpdateWithoutConversationsAsWorkerInput = {
@@ -14967,6 +17147,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14985,6 +17167,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUncheckedUpdateManyWithoutWorkerNestedInput
     conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
     messagesSent?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutConversationInput = {
@@ -15038,6 +17222,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -15056,6 +17242,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostCreateNestedManyWithoutWorkerInput
     conversationsAsEmployer?: ConversationCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationCreateNestedManyWithoutWorkerInput
+    userReviewsWritten?: UserReviewCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewCreateNestedManyWithoutTargetInput
   }
 
   export type UserUncheckedCreateWithoutMessagesSentInput = {
@@ -15072,6 +17260,8 @@ export namespace Prisma {
     district?: string | null
     subDistrict?: string | null
     zipCode?: string | null
+    avatar?: string | null
+    banner?: string | null
     birthDate?: Date | string | null
     occupation?: string | null
     income?: number | null
@@ -15090,6 +17280,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUncheckedCreateNestedManyWithoutWorkerInput
     conversationsAsEmployer?: ConversationUncheckedCreateNestedManyWithoutEmployerInput
     conversationsAsWorker?: ConversationUncheckedCreateNestedManyWithoutWorkerInput
+    userReviewsWritten?: UserReviewUncheckedCreateNestedManyWithoutAuthorInput
+    userReviewsReceived?: UserReviewUncheckedCreateNestedManyWithoutTargetInput
   }
 
   export type UserCreateOrConnectWithoutMessagesSentInput = {
@@ -15149,6 +17341,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15167,6 +17361,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUpdateManyWithoutWorkerNestedInput
     conversationsAsEmployer?: ConversationUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUpdateManyWithoutWorkerNestedInput
+    userReviewsWritten?: UserReviewUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUpdateManyWithoutTargetNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMessagesSentInput = {
@@ -15183,6 +17379,8 @@ export namespace Prisma {
     district?: NullableStringFieldUpdateOperationsInput | string | null
     subDistrict?: NullableStringFieldUpdateOperationsInput | string | null
     zipCode?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    banner?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     occupation?: NullableStringFieldUpdateOperationsInput | string | null
     income?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15201,6 +17399,8 @@ export namespace Prisma {
     workerPosts?: WorkerPostUncheckedUpdateManyWithoutWorkerNestedInput
     conversationsAsEmployer?: ConversationUncheckedUpdateManyWithoutEmployerNestedInput
     conversationsAsWorker?: ConversationUncheckedUpdateManyWithoutWorkerNestedInput
+    userReviewsWritten?: UserReviewUncheckedUpdateManyWithoutAuthorNestedInput
+    userReviewsReceived?: UserReviewUncheckedUpdateManyWithoutTargetNestedInput
   }
 
   export type JobCreateManyPostedByInput = {
@@ -15270,6 +17470,22 @@ export namespace Prisma {
     conversationId: number
     text: string
     readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type UserReviewCreateManyAuthorInput = {
+    id?: number
+    targetId: number
+    rating: number
+    comment: string
+    createdAt?: Date | string
+  }
+
+  export type UserReviewCreateManyTargetInput = {
+    id?: number
+    authorId: number
+    rating: number
+    comment: string
     createdAt?: Date | string
   }
 
@@ -15483,6 +17699,52 @@ export namespace Prisma {
     conversationId?: IntFieldUpdateOperationsInput | number
     text?: StringFieldUpdateOperationsInput | string
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserReviewUpdateWithoutAuthorInput = {
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    target?: UserUpdateOneRequiredWithoutUserReviewsReceivedNestedInput
+  }
+
+  export type UserReviewUncheckedUpdateWithoutAuthorInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    targetId?: IntFieldUpdateOperationsInput | number
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserReviewUncheckedUpdateManyWithoutAuthorInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    targetId?: IntFieldUpdateOperationsInput | number
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserReviewUpdateWithoutTargetInput = {
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    author?: UserUpdateOneRequiredWithoutUserReviewsWrittenNestedInput
+  }
+
+  export type UserReviewUncheckedUpdateWithoutTargetInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    authorId?: IntFieldUpdateOperationsInput | number
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserReviewUncheckedUpdateManyWithoutTargetInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    authorId?: IntFieldUpdateOperationsInput | number
+    rating?: IntFieldUpdateOperationsInput | number
+    comment?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

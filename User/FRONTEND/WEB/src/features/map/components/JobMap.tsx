@@ -20,6 +20,7 @@ type Job = {
     lng: number;
     photo?: string;
     hasRealLocation?: boolean;
+    postedById?: number;
 };
 
 type UserLocation = { lat: number; lng: number };
@@ -64,6 +65,7 @@ function mapApiJob(raw: any, index: number): Job {
         lat,
         lng,
         hasRealLocation,
+        postedById: postedBy?.id,
     };
 }
 
@@ -157,6 +159,8 @@ export default function JobMap() {
             const msg = err?.response?.data?.message;
             if (msg === 'Already applied to this job') {
                 setAppliedIds((prev) => new Set(prev).add(job.id));
+            } else if (msg === 'You cannot apply to your own job') {
+                alert('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
             } else {
                 alert(msg || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
             }
@@ -242,6 +246,7 @@ export default function JobMap() {
                             {jobs.map((job) => {
                                 const isApplying = applyingIds.has(job.id);
                                 const isApplied = appliedIds.has(job.id);
+                                const isOwnJob = !!session && job.postedById === Number(session.userId);
                                 return (
                                     <div key={job.id} className="inline-block w-64 bg-white border border-slate-200 hover:border-blue-500 rounded-xl p-3 shadow-sm transition-colors whitespace-normal">
                                         <div className="flex items-start gap-3">
@@ -270,21 +275,27 @@ export default function JobMap() {
                                             <div className="flex-1 text-center text-xs font-bold text-blue-600 py-1">
                                                 {job.salary}
                                             </div>
-                                            <button
-                                                onClick={() => handleApply(job)}
-                                                disabled={isApplying || isApplied}
-                                                className={`flex-1 flex items-center justify-center gap-1 text-xs font-bold py-1.5 rounded-lg active:scale-95 transition-all
-                                                    ${isApplied
-                                                        ? 'bg-green-100 text-green-700 cursor-default'
-                                                        : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60'
-                                                    }`}
-                                            >
-                                                {isApplying ? (
-                                                    <Loader2 size={12} className="animate-spin" />
-                                                ) : isApplied ? (
-                                                    <><CheckCircle2 size={12} /> สมัครแล้ว</>
-                                                ) : 'สมัครงาน'}
-                                            </button>
+                                            {isOwnJob ? (
+                                                <span className="flex-1 flex items-center justify-center gap-1 text-xs font-bold py-1.5 rounded-lg bg-slate-100 text-slate-500 cursor-default">
+                                                    งานของคุณ
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleApply(job)}
+                                                    disabled={isApplying || isApplied}
+                                                    className={`flex-1 flex items-center justify-center gap-1 text-xs font-bold py-1.5 rounded-lg active:scale-95 transition-all
+                                                        ${isApplied
+                                                            ? 'bg-green-100 text-green-700 cursor-default'
+                                                            : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60'
+                                                        }`}
+                                                >
+                                                    {isApplying ? (
+                                                        <Loader2 size={12} className="animate-spin" />
+                                                    ) : isApplied ? (
+                                                        <><CheckCircle2 size={12} /> สมัครแล้ว</>
+                                                    ) : 'สมัครงาน'}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 );

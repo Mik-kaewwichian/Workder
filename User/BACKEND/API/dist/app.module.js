@@ -16,12 +16,13 @@ const applications_module_1 = require("./modules/applications/applications.modul
 const reviews_module_1 = require("./modules/reviews/reviews.module");
 const workerposts_module_1 = require("./modules/workerposts/workerposts.module");
 const chat_module_1 = require("./modules/chat/chat.module");
+const user_reviews_module_1 = require("./modules/user-reviews/user-reviews.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, users_module_1.UsersModule, jobs_module_1.JobsModule, auth_module_1.AuthModule, applications_module_1.ApplicationsModule, reviews_module_1.ReviewsModule, workerposts_module_1.WorkerPostsModule, chat_module_1.ChatModule],
+        imports: [prisma_module_1.PrismaModule, users_module_1.UsersModule, jobs_module_1.JobsModule, auth_module_1.AuthModule, applications_module_1.ApplicationsModule, reviews_module_1.ReviewsModule, workerposts_module_1.WorkerPostsModule, chat_module_1.ChatModule, user_reviews_module_1.UserReviewsModule],
         controllers: [],
         providers: [],
     })

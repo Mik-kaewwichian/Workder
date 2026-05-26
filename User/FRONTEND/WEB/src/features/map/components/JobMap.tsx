@@ -2,13 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
-import { Search, Filter, MapPin, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { MapPin, Loader2, AlertCircle, ChevronUp, Navigation } from 'lucide-react';
 import api from '../../../lib/api';
 import { getAuthSession } from '../../auth/lib/auth';
-// Note: Link/useRouter kept for onJobClick navigation passed to JobMapLeaflet
 
 type Job = {
     id: number;
@@ -27,16 +25,26 @@ type Job = {
 
 type UserLocation = { lat: number; lng: number };
 
-const JobMapLeaflet = dynamic<{ jobs: Job[]; mapHeight: number; userLocation: UserLocation | null; onJobClick?: (id: number) => void }>(
+const JobMapLeaflet = dynamic<{
+    jobs: Job[];
+    mapHeight: number;
+    userLocation: UserLocation | null;
+    radiusKm: number;
+    onJobClick?: (id: number) => void;
+}>(
     () => import('./JobMapLeaflet'),
-    { ssr: false, loading: () => <div style={{ width: '100%', height: '100%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>กำลังโหลดแผนที่...</div> }
+    {
+        ssr: false,
+        loading: () => (
+            <div style={{ width: '100%', height: '100%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                กำลังโหลดแผนที่...
+            </div>
+        ),
+    }
 );
 
-const SEARCH_BAR_H = 57;
 const NAVBAR_H = 64;
-const RADIUS_KM = 10;
 
-// Bangkok area demo positions used when a job has no coordinates
 const DEMO_POSITIONS: [number, number][] = [
     [13.7563, 100.5018], [13.7580, 100.5080], [13.7530, 100.4990],
     [13.7545, 100.5060], [13.7600, 100.4950], [13.7510, 100.5100],
@@ -93,10 +101,13 @@ export default function JobMap() {
     const [mapHeight, setMapHeight] = useState(0);
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
     const [locationStatus, setLocationStatus] = useState<'loading' | 'granted' | 'denied'>('loading');
+    const [radiusKm, setRadiusKm] = useState(10);
+    const [showSlider, setShowSlider] = useState(false);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const session = typeof window !== 'undefined' ? getAuthSession() : null;
 
-    // Fetch real jobs + pre-populate applied IDs so refresh doesn't reset state
+    // Fetch real jobs from API
     useEffect(() => {
         api.get('/jobs')
             .then(({ data }) => {
@@ -104,102 +115,68 @@ export default function JobMap() {
                     setAllJobs(data.filter((j: any) => j.status !== 'completed').map(mapApiJob));
                 }
             })
-            .catch(() => {/* API unavailable — keep demo data */});
-
+            .catch(() => {/* keep demo data */});
     }, []);
 
+    // Map fills full viewport minus navbar
     useEffect(() => {
-        const calc = () => {
-            setMapHeight(window.innerHeight - NAVBAR_H - SEARCH_BAR_H);
-        };
+        const calc = () => setMapHeight(window.innerHeight - NAVBAR_H);
         calc();
         window.addEventListener('resize', calc);
         return () => window.removeEventListener('resize', calc);
     }, []);
 
+    // Request geolocation
     useEffect(() => {
-        if (!navigator.geolocation) {
-            setLocationStatus('denied');
-            return;
-        }
+        if (!navigator.geolocation) { setLocationStatus('denied'); return; }
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
                 setLocationStatus('granted');
             },
             () => setLocationStatus('denied'),
-            { timeout: 8000 }
+            { timeout: 8000 },
         );
     }, []);
 
+    // Filter + annotate jobs by radius
     const jobs: Job[] = userLocation
         ? allJobs
-            .filter((job) => !job.hasRealLocation || haversineKm(userLocation.lat, userLocation.lng, job.lat, job.lng) <= RADIUS_KM)
+            .filter((job) => {
+                if (!job.hasRealLocation) return true;          // no coords → always show
+                if (radiusKm === 0) return true;                // 0 = show all
+                return haversineKm(userLocation.lat, userLocation.lng, job.lat, job.lng) <= radiusKm;
+            })
             .map((job) => {
                 if (!job.hasRealLocation) return { ...job, distance: '—' };
                 const km = haversineKm(userLocation.lat, userLocation.lng, job.lat, job.lng);
-                const distStr = km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
-                return { ...job, distance: distStr };
+                return { ...job, distance: km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km` };
             })
         : allJobs;
 
+    const radiusLabel = radiusKm === 0 ? 'ทุกระยะ' : `${radiusKm} กม.`;
 
     return (
         <>
             <Navbar />
-            <div className="bg-slate-50 flex flex-col">
 
-                {/* Search Bar */}
-                <div className="bg-white px-4 py-3 shadow-sm z-10 flex items-center gap-3">
-                    <Link href="/" className="p-2 -ml-2 text-slate-500 hover:text-slate-800">
-                        <ArrowLeft size={24} />
-                    </Link>
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="ค้นหางานใกล้ฉัน..."
-                            className="w-full bg-slate-100 rounded-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        />
-                    </div>
-                    <button className="p-2 text-slate-500 hover:text-slate-800 bg-slate-100 rounded-full">
-                        <Filter size={20} />
-                    </button>
-                </div>
+            {/* Map container — fills remaining viewport */}
+            <div className="relative bg-slate-100" style={{ height: mapHeight }}>
 
-                {/* Location status banner */}
-                {locationStatus === 'loading' && (
-                    <div className="bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center gap-2 text-sm text-blue-700">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        กำลังระบุตำแหน่งของคุณ...
-                    </div>
-                )}
-                {locationStatus === 'denied' && (
-                    <div className="bg-amber-50 border-b border-amber-100 px-4 py-2 flex items-center gap-2 text-sm text-amber-700">
-                        <AlertCircle className="h-4 w-4" />
-                        ไม่สามารถระบุตำแหน่งได้ — แสดงงานทั้งหมด
-                    </div>
-                )}
-                {locationStatus === 'granted' && (
-                    <div className="bg-green-50 border-b border-green-100 px-4 py-2 flex items-center gap-2 text-sm text-green-700">
-                        <MapPin className="h-4 w-4" />
-                        แสดงงานในรัศมี {RADIUS_KM} กม. จากตำแหน่งของคุณ
-                    </div>
-                )}
-
-                {/* Leaflet Map */}
+                {/* Leaflet map */}
                 {mapHeight > 0 && locationStatus !== 'loading' && (
-                    <div style={{ height: mapHeight, width: '100%', zIndex: 0 }}>
-                        <JobMapLeaflet
-                            jobs={jobs}
-                            mapHeight={mapHeight}
-                            userLocation={userLocation}
-                            onJobClick={(id) => router.push(`/workboard/${id}`)}
-                        />
-                    </div>
+                    <JobMapLeaflet
+                        jobs={jobs}
+                        mapHeight={mapHeight}
+                        userLocation={userLocation}
+                        radiusKm={radiusKm}
+                        onJobClick={(id) => router.push(`/workboard/${id}`)}
+                    />
                 )}
-                {mapHeight > 0 && locationStatus === 'loading' && (
-                    <div style={{ height: mapHeight }} className="flex items-center justify-center bg-slate-100">
+
+                {/* Loading overlay */}
+                {locationStatus === 'loading' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
                         <div className="text-center">
                             <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-2" />
                             <p className="text-sm text-slate-500">กำลังระบุตำแหน่ง...</p>
@@ -207,6 +184,74 @@ export default function JobMap() {
                     </div>
                 )}
 
+                {/* ── Distance control — floating overlay ─────────────────────────── */}
+                {locationStatus !== 'loading' && (
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] flex flex-col items-center gap-2">
+
+                        {/* Slider panel */}
+                        {showSlider && (
+                            <div className="bg-white rounded-2xl shadow-2xl px-5 py-4 w-72 border border-slate-100">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">รัศมีการค้นหา</span>
+                                    <span className="text-base font-extrabold text-blue-600">{radiusLabel}</span>
+                                </div>
+
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={10}
+                                    step={1}
+                                    value={radiusKm}
+                                    onChange={(e) => setRadiusKm(Number(e.target.value))}
+                                    className="w-full h-2 rounded-full accent-blue-600 cursor-pointer"
+                                />
+
+                                {/* Tick marks */}
+                                <div className="flex justify-between mt-1.5 px-0.5">
+                                    {[0, 2, 4, 6, 8, 10].map((v) => (
+                                        <span key={v} className={`text-[10px] font-semibold ${v === radiusKm ? 'text-blue-600' : 'text-slate-400'}`}>
+                                            {v === 0 ? 'ทั้งหมด' : `${v}`}
+                                        </span>
+                                    ))}
+                                </div>
+
+                                {/* Location denied note */}
+                                {locationStatus === 'denied' && (
+                                    <div className="mt-3 flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 rounded-xl px-3 py-2">
+                                        <AlertCircle size={12} />
+                                        ไม่พบตำแหน่งของคุณ — แสดงงานทั้งหมด
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Toggle pill button */}
+                        <button
+                            onClick={() => setShowSlider((v) => !v)}
+                            className="flex items-center gap-2 bg-white/95 backdrop-blur-sm shadow-xl rounded-full px-5 py-2.5 border border-slate-200 text-sm font-bold text-slate-700 hover:bg-white transition-all active:scale-95"
+                        >
+                            {locationStatus === 'denied'
+                                ? <AlertCircle size={15} className="text-amber-500" />
+                                : <Navigation size={15} className="text-blue-500" />
+                            }
+                            <span>รัศมี {radiusLabel}</span>
+                            <ChevronUp
+                                size={15}
+                                className={`text-slate-400 transition-transform duration-200 ${showSlider ? '' : 'rotate-180'}`}
+                            />
+                        </button>
+                    </div>
+                )}
+
+                {/* Job count badge — top-left overlay */}
+                {locationStatus !== 'loading' && (
+                    <div className="absolute top-3 left-3 z-[1000]">
+                        <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md border border-slate-100">
+                            <MapPin size={12} className="text-blue-500" />
+                            <span className="text-xs font-bold text-slate-700">{jobs.length} งาน</span>
+                        </div>
+                    </div>
+                )}
 
             </div>
         </>

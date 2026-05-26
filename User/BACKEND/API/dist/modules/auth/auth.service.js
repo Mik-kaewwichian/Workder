@@ -50,7 +50,7 @@ let AuthService = class AuthService {
         };
     }
     async getProfile(userId) {
-        return this.usersService.user({ id: userId });
+        return this.usersService.getMe(userId);
     }
     async verifyToken(token) {
         return this.jwtService.verifyAsync(token, {

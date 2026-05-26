@@ -724,7 +724,12 @@ function SkillBoard({ session }: { session: AuthSession | null }) {
 
 const FILTER_TABS = ['ทั้งหมด', 'งานด่วน', 'พาร์ทไทม์', 'ฟูลไทม์', 'เซฟโซน'];
 
-function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null; initialSearch?: string }) {
+function JobBoard({ session, initialSearch = '', workerBusy = false, activeJobId = null }: {
+    session: AuthSession | null;
+    initialSearch?: string;
+    workerBusy?: boolean;
+    activeJobId?: number | null;
+}) {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState(initialSearch);
@@ -764,10 +769,11 @@ function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null
         } catch { /* ignore */ }
     };
 
-    // Gate: check auth + profile, then open the experience modal
+    // Gate: check auth + profile + worker status, then open the experience modal
     const handleApply = (job: Job) => {
         if (!session) { window.location.href = '/login'; return; }
         if (!session.profileCompleted) { setShowRegisterModal(true); return; }
+        if (workerBusy) return; // banner already visible — button disabled too
         if (appliedIds.has(job.id) || applyingIds.has(job.id)) return;
         setApplyModalJob(job);
     };
@@ -784,6 +790,7 @@ function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null
             if (msg === 'Already applied to this job') { setAppliedIds((prev) => new Set(prev).add(job.id)); setApplyModalJob(null); }
             else if (msg === 'You cannot apply to your own job') throw new Error('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
             else if (msg === 'PROFILE_INCOMPLETE') { setShowRegisterModal(true); setApplyModalJob(null); }
+            else if (msg === 'WORKER_BUSY') throw new Error('คุณกำลังทำงานอยู่แล้ว กรุณาทำงานปัจจุบันให้เสร็จก่อน');
             else throw new Error(msg || 'เกิดข้อผิดพลาด');
         } finally {
             setApplyingIds((prev) => { const s = new Set(prev); s.delete(job.id); return s; });
@@ -804,6 +811,25 @@ function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null
 
     return (
         <div>
+            {/* Worker-busy banner */}
+            {isWorker && workerBusy && (
+                <div className="mb-5 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                    <div className="h-9 w-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                        <Briefcase className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-amber-800">คุณกำลังทำงานอยู่</p>
+                        <p className="text-xs text-amber-600 mt-0.5">ไม่สามารถสมัครงานใหม่ได้จนกว่างานปัจจุบันจะเสร็จสิ้น</p>
+                    </div>
+                    {activeJobId && (
+                        <Link href={`/workboard/${activeJobId}`}
+                            className="shrink-0 text-xs font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-xl transition-colors">
+                            ดูงาน
+                        </Link>
+                    )}
+                </div>
+            )}
+
             {/* Search + action */}
             <div className="flex gap-3 mb-5">
                 <div className="flex-1 relative">
@@ -924,10 +950,16 @@ function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null
                                                 <Link href={`/workboard/${job.id}`} className="flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
                                                     <Eye size={13} /> ดูรายละเอียด
                                                 </Link>
-                                                <button onClick={() => handleApply(job)} disabled={isApplying || isApplied}
-                                                    className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-bold py-2 rounded-xl transition-all active:scale-95 ${isApplied ? 'bg-green-100 text-green-700 cursor-default' : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60'}`}>
-                                                    {isApplying ? <Loader2 size={14} className="animate-spin" /> : isApplied ? <><CheckCircle2 size={14} /> สมัครแล้ว</> : 'สมัคร'}
-                                                </button>
+                                                {workerBusy ? (
+                                                    <span className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold py-2 rounded-xl bg-amber-100 text-amber-700 cursor-not-allowed">
+                                                        <Briefcase size={12} /> กำลังทำงาน
+                                                    </span>
+                                                ) : (
+                                                    <button onClick={() => handleApply(job)} disabled={isApplying || isApplied}
+                                                        className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-bold py-2 rounded-xl transition-all active:scale-95 ${isApplied ? 'bg-green-100 text-green-700 cursor-default' : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60'}`}>
+                                                        {isApplying ? <Loader2 size={14} className="animate-spin" /> : isApplied ? <><CheckCircle2 size={14} /> สมัครแล้ว</> : 'สมัคร'}
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -962,8 +994,22 @@ function WorkboardContent() {
     const initialSearch = searchParams.get('q') ?? '';
     const [session, setSession] = useState<AuthSession | null | 'loading'>('loading');
     const [tab, setTab] = useState<Tab>('jobs');
+    const [workerBusy, setWorkerBusy] = useState(false);
+    const [activeJobId, setActiveJobId] = useState<number | null>(null);
 
-    useEffect(() => { setSession(getAuthSession()); }, []);
+    useEffect(() => {
+        const s = getAuthSession();
+        setSession(s);
+        // Fetch fresh workerStatus from the server (localStorage is stale for this)
+        if (s && s.role !== 'employer' && s.accessToken) {
+            api.get('/auth/me')
+                .then(({ data }) => {
+                    setWorkerBusy(data.workerStatus === 'WORKING');
+                    setActiveJobId(data.activeJobId ?? null);
+                })
+                .catch(() => {/* non-critical */});
+        }
+    }, []);
 
     const resolvedSession = session === 'loading' ? null : session;
 
@@ -998,7 +1044,7 @@ function WorkboardContent() {
                     {session === 'loading' ? (
                         <div className="flex justify-center pt-20"><Loader2 className="h-8 w-8 animate-spin text-blue-500" /></div>
                     ) : tab === 'jobs' ? (
-                        <JobBoard session={resolvedSession} initialSearch={initialSearch} />
+                        <JobBoard session={resolvedSession} initialSearch={initialSearch} workerBusy={workerBusy} activeJobId={activeJobId} />
                     ) : (
                         <SkillBoard session={resolvedSession} />
                     )}

@@ -162,6 +162,8 @@ export default function JobDetailPage() {
     const [chatting, setChatting] = useState(false);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showApplyModal, setShowApplyModal] = useState(false);
+    const [workerBusy, setWorkerBusy] = useState(false);
+    const [activeJobId, setActiveJobId] = useState<number | null>(null);
 
     const session = typeof window !== 'undefined' ? getAuthSession() : null;
     const isEmployer = session?.role === 'employer';
@@ -182,13 +184,22 @@ export default function JobDetailPage() {
                     }
                 })
                 .catch(() => {/* non-critical */});
+
+            // Fetch live workerStatus — localStorage is stale for this field
+            api.get('/auth/me')
+                .then(({ data }) => {
+                    setWorkerBusy(data.workerStatus === 'WORKING');
+                    setActiveJobId(data.activeJobId ?? null);
+                })
+                .catch(() => {/* non-critical */});
         }
     }, [id]);
 
-    // Gate: check auth + profile, then open the experience modal
+    // Gate: check auth + profile + worker status, then open the experience modal
     const handleApply = () => {
         if (!session) { router.push('/login'); return; }
         if (!session.profileCompleted) { setShowRegisterModal(true); return; }
+        if (workerBusy) return;
         setApplyError('');
         setShowApplyModal(true);
     };
@@ -206,6 +217,7 @@ export default function JobDetailPage() {
             if (msg === 'Already applied to this job') { setApplied(true); setShowApplyModal(false); }
             else if (msg === 'You cannot apply to your own job') throw new Error('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
             else if (msg === 'PROFILE_INCOMPLETE') { setShowRegisterModal(true); setShowApplyModal(false); }
+            else if (msg === 'WORKER_BUSY') throw new Error('คุณกำลังทำงานอยู่แล้ว กรุณาทำงานปัจจุบันให้เสร็จก่อน');
             else throw new Error(msg || 'เกิดข้อผิดพลาด');
         } finally {
             setApplying(false);
@@ -404,6 +416,16 @@ export default function JobDetailPage() {
                     </button>
                     {job.status !== 'open' ? (
                         <span className="px-6 py-3 rounded-xl bg-slate-100 text-slate-400 font-bold text-sm">ปิดรับแล้ว</span>
+                    ) : workerBusy ? (
+                        <div className="flex flex-col items-end">
+                            <span className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-100 text-amber-700 font-bold text-sm cursor-not-allowed">
+                                <Briefcase size={16} /> กำลังทำงานอยู่
+                            </span>
+                            {activeJobId && activeJobId !== Number(id) && (
+                                <button onClick={() => router.push(`/workboard/${activeJobId}`)}
+                                    className="text-[10px] text-amber-600 underline mt-0.5">ดูงานปัจจุบัน</button>
+                            )}
+                        </div>
                     ) : applied ? (
                         <span className="flex items-center gap-2 px-6 py-3 rounded-xl bg-green-100 text-green-700 font-bold text-sm">
                             <CheckCircle2 size={16} /> สมัครแล้ว

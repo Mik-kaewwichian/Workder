@@ -6,6 +6,11 @@ import { CreateUserDto, UpdateUserDto } from './users.dto';
 
 export type PublicUser = Omit<User, 'passwordHash'>;
 
+export type MeResponse = PublicUser & {
+    workerStatus: 'AVAILABLE' | 'WORKING';
+    activeJobId: number | null;
+};
+
 type ReviewAuthor = { id: number; firstName: string | null; lastName: string | null; avatar: string | null };
 
 export type PublicProfile = {
@@ -46,6 +51,29 @@ export class UsersService {
         });
 
         return user ? stripPasswordHash(user) : null;
+    }
+
+    /**
+     * Like user() but also derives the worker's current status from the
+     * Escrow table — no stored field, no drift.  Used by /auth/me.
+     */
+    async getMe(userId: number): Promise<MeResponse | null> {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) return null;
+
+        const activeEscrow = await this.prisma.escrow.findFirst({
+            where: {
+                workerId: userId,
+                status: { in: ['HELD', 'PENDING_CONFIRMATION', 'DISPUTED'] },
+            },
+            select: { jobId: true },
+        });
+
+        return {
+            ...stripPasswordHash(user),
+            workerStatus: activeEscrow ? 'WORKING' : 'AVAILABLE',
+            activeJobId: activeEscrow?.jobId ?? null,
+        };
     }
 
     async users(params: {

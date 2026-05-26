@@ -28,6 +28,27 @@ let UsersService = class UsersService {
         });
         return user ? stripPasswordHash(user) : null;
     }
+    /**
+     * Like user() but also derives the worker's current status from the
+     * Escrow table — no stored field, no drift.  Used by /auth/me.
+     */
+    async getMe(userId) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            return null;
+        const activeEscrow = await this.prisma.escrow.findFirst({
+            where: {
+                workerId: userId,
+                status: { in: ['HELD', 'PENDING_CONFIRMATION', 'DISPUTED'] },
+            },
+            select: { jobId: true },
+        });
+        return {
+            ...stripPasswordHash(user),
+            workerStatus: activeEscrow ? 'WORKING' : 'AVAILABLE',
+            activeJobId: activeEscrow?.jobId ?? null,
+        };
+    }
     async users(params) {
         const { skip, take, cursor, where, orderBy } = params;
         const users = await this.prisma.user.findMany({

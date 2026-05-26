@@ -55,6 +55,16 @@ let ApplicationsService = class ApplicationsService {
         if (job.postedById === workerId) {
             throw new common_1.ForbiddenException('You cannot apply to your own job');
         }
+        // Block if this worker already has an active job (escrow HELD / PENDING_CONFIRMATION / DISPUTED)
+        const busyEscrow = await this.prisma.escrow.findFirst({
+            where: {
+                workerId,
+                status: { in: ['HELD', 'PENDING_CONFIRMATION', 'DISPUTED'] },
+            },
+            select: { jobId: true },
+        });
+        if (busyEscrow)
+            throw new common_1.ForbiddenException('WORKER_BUSY');
         const existing = await this.prisma.application.findUnique({
             where: { jobId_workerId: { jobId: dto.jobId, workerId } },
         });
@@ -149,6 +159,17 @@ let ApplicationsService = class ApplicationsService {
             const employerId = job.postedById;
             await this.escrow.ensureWallets(employerId, application.workerId);
             const updated = await this.prisma.$transaction(async (tx) => {
+                // Prevent double-booking: worker must not be active on a different job
+                const alreadyBusy = await tx.escrow.findFirst({
+                    where: {
+                        workerId: application.workerId,
+                        status: { in: ['HELD', 'PENDING_CONFIRMATION', 'DISPUTED'] },
+                        applicationId: { not: id },
+                    },
+                    select: { jobId: true },
+                });
+                if (alreadyBusy)
+                    throw new common_1.ConflictException('WORKER_BUSY');
                 await this.escrow.holdWithinTx(tx, {
                     jobId: job.id,
                     applicationId: id,

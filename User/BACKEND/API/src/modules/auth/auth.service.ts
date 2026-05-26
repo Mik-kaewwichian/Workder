@@ -56,7 +56,7 @@ export class AuthService {
 	}
 
 	async getProfile(userId: number) {
-		return this.usersService.user({ id: userId });
+		return this.usersService.getMe(userId);
 	}
 
 	async verifyToken(token: string) {

@@ -5,8 +5,9 @@ import Navbar from '../../components/Navbar';
 import Link from 'next/link';
 import {
     ArrowLeft, Briefcase, Clock, CheckCircle2, XCircle,
-    Loader2, Star, PackageCheck, AlertTriangle,
+    Loader2, Star, PackageCheck, AlertTriangle, Camera,
 } from 'lucide-react';
+import ProofPhotoModal from '../../components/ProofPhotoModal';
 import api from '../../lib/api';
 import { getAuthSession } from '../../features/auth/lib/auth';
 import ReviewModal from '../../features/reviews/components/ReviewModal';
@@ -46,6 +47,7 @@ const TYPE_MAP: Record<string, string> = {
 
 function EscrowPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: () => void }) {
     const [busy, setBusy] = useState(false);
+    const [showProofModal, setShowProofModal] = useState(false);
     const net = escrow.amount - escrow.feeAmount;
 
     const run = async (fn: () => Promise<unknown>) => {
@@ -65,22 +67,35 @@ function EscrowPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: () => v
 
     if (escrow.status === 'HELD') {
         return (
-            <div className="mt-3 pt-3 border-t border-blue-100 bg-blue-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-xl">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div>
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                            <Clock size={10} /> กำลังทำงาน — เงินถูกกันไว้ {formatThb(escrow.amount)}
-                        </span>
+            <>
+                <div className="mt-3 pt-3 border-t border-blue-100 bg-blue-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-xl">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <div>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                                <Clock size={10} /> กำลังทำงาน — เงินถูกกันไว้ {formatThb(escrow.amount)}
+                            </span>
+                        </div>
+                        <button
+                            disabled={busy}
+                            onClick={() => setShowProofModal(true)}
+                            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        >
+                            <Camera size={15} /> ทำงานเสร็จแล้ว (ส่งหลักฐาน)
+                        </button>
                     </div>
-                    <button
-                        disabled={busy}
-                        onClick={() => run(() => markWorkDone(escrow.id))}
-                        className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                    >
-                        <PackageCheck size={15} /> ทำงานเสร็จแล้ว
-                    </button>
                 </div>
-            </div>
+                {showProofModal && (
+                    <ProofPhotoModal
+                        jobTitle={escrow.job?.title ?? 'งาน'}
+                        busy={busy}
+                        onConfirm={(photos) => {
+                            run(() => markWorkDone(escrow.id, photos));
+                            setShowProofModal(false);
+                        }}
+                        onCancel={() => setShowProofModal(false)}
+                    />
+                )}
+            </>
         );
     }
 

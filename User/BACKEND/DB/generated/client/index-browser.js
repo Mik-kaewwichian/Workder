@@ -272,7 +272,8 @@ exports.Prisma.EscrowScalarFieldEnum = {
   workerMarkedDoneAt: 'workerMarkedDoneAt',
   autoReleaseAt: 'autoReleaseAt',
   disputedAt: 'disputedAt',
-  disputeReason: 'disputeReason'
+  disputeReason: 'disputeReason',
+  proofPhotos: 'proofPhotos'
 };
 
 exports.Prisma.TopUpScalarFieldEnum = {

@@ -182,7 +182,7 @@ function WorkSidebar({ session, onClose }: { session: AuthSession; onClose: () =
                                                     </span>
                                                     <button
                                                         disabled={busy}
-                                                        onClick={() => run(e.id, () => markWorkDone(e.id))}
+                                                        onClick={() => run(e.id, () => markWorkDone(e.id, []))}
                                                         className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                                                     >
                                                         {busy ? <Loader2 size={12} className="animate-spin" /> : <PackageCheck size={12} />}

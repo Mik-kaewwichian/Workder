@@ -7,11 +7,13 @@ import {
     ParseIntPipe,
     Post,
     UseGuards,
+    UsePipes,
+    ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser, CurrentUserId } from '../../common/decorators/current-user.decorator';
 import { EscrowService } from './escrow.service';
-import { DisputeEscrowDto, ResolveDisputeDto } from './escrow.dto';
+import { DisputeEscrowDto, MarkWorkDoneDto, ResolveDisputeDto } from './escrow.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('escrow')
@@ -23,10 +25,15 @@ export class EscrowController {
         return this.escrow.listMine(userId);
     }
 
-    /** Worker marks the work finished. */
+    /** Worker marks the work finished — must include at least 1 proof photo. */
     @Post(':id/work-done')
-    workDone(@CurrentUserId() userId: number, @Param('id', ParseIntPipe) id: number) {
-        return this.escrow.markWorkDone(id, userId);
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    workDone(
+        @CurrentUserId() userId: number,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: MarkWorkDoneDto,
+    ) {
+        return this.escrow.markWorkDone(id, userId, dto.proofPhotos);
     }
 
     /** Employer confirms → release to worker. */

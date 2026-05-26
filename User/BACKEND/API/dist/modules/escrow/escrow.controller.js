@@ -26,9 +26,9 @@ let EscrowController = class EscrowController {
     mine(userId) {
         return this.escrow.listMine(userId);
     }
-    /** Worker marks the work finished. */
-    workDone(userId, id) {
-        return this.escrow.markWorkDone(id, userId);
+    /** Worker marks the work finished — must include at least 1 proof photo. */
+    workDone(userId, id, dto) {
+        return this.escrow.markWorkDone(id, userId, dto.proofPhotos);
     }
     /** Employer confirms → release to worker. */
     confirm(userId, id) {
@@ -66,10 +66,12 @@ __decorate([
 ], EscrowController.prototype, "mine", null);
 __decorate([
     (0, common_1.Post)(':id/work-done'),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({ whitelist: true })),
     __param(0, (0, current_user_decorator_1.CurrentUserId)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, Number, escrow_dto_1.MarkWorkDoneDto]),
     __metadata("design:returntype", void 0)
 ], EscrowController.prototype, "workDone", null);
 __decorate([

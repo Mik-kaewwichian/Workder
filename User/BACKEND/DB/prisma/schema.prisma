@@ -246,6 +246,7 @@ model Escrow {
   autoReleaseAt      DateTime? // workerMarkedDoneAt + ESCROW_AUTO_RELEASE_DAYS
   disputedAt         DateTime?
   disputeReason      String?
+  proofPhotos        String?   // JSON array of base64 or URL strings uploaded by worker
 
   job         Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)

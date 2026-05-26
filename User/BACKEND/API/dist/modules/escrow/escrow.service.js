@@ -133,16 +133,24 @@ let EscrowService = class EscrowService {
     }
     // ── Public actions ──────────────────────────────────────────────────────
     /** Worker: "งานเสร็จแล้ว" — starts the auto-release timer. */
-    async markWorkDone(escrowId, workerId) {
+    async markWorkDone(escrowId, workerId, proofPhotos) {
         const escrow = await this.getOwned(escrowId, workerId, 'worker');
         if (escrow.status !== 'HELD') {
             throw new common_1.ConflictException(`Cannot mark done in status ${escrow.status}`);
+        }
+        if (!proofPhotos || proofPhotos.length === 0) {
+            throw new common_1.BadRequestException('PROOF_REQUIRED');
         }
         const now = new Date();
         const autoReleaseAt = new Date(now.getTime() + env_1.env.wallet.escrowAutoReleaseDays * 24 * 60 * 60 * 1000);
         return this.prisma.escrow.update({
             where: { id: escrowId },
-            data: { status: 'PENDING_CONFIRMATION', workerMarkedDoneAt: now, autoReleaseAt },
+            data: {
+                status: 'PENDING_CONFIRMATION',
+                workerMarkedDoneAt: now,
+                autoReleaseAt,
+                proofPhotos: JSON.stringify(proofPhotos),
+            },
         });
     }
     /** Employer: confirm completion → immediate release to the worker. */

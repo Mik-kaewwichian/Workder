@@ -13,7 +13,9 @@ import {
     RefreshCw,
     PackageCheck,
     XCircle,
+    Camera,
 } from 'lucide-react';
+import ProofPhotoModal from '../../components/ProofPhotoModal';
 import { getAuthSession, type AuthSession } from '../../features/auth/lib/auth';
 import { formatThb } from '../../features/payments/lib/wallet-api';
 import {
@@ -43,6 +45,7 @@ function EscrowCard({
     onChanged: () => void;
 }) {
     const [busy, setBusy] = useState(false);
+    const [showProofModal, setShowProofModal] = useState(false);
     const isEmployer = escrow.employerId === userId;
     const isWorker = escrow.workerId === userId;
     const net = escrow.amount - escrow.feeAmount;
@@ -110,10 +113,10 @@ function EscrowCard({
                 {isWorker && escrow.status === 'HELD' && (
                     <button
                         disabled={busy}
-                        onClick={() => run(() => markWorkDone(escrow.id))}
+                        onClick={() => setShowProofModal(true)}
                         className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
                     >
-                        <PackageCheck className="h-4 w-4" /> ทำงานเสร็จแล้ว
+                        <Camera className="h-4 w-4" /> ทำงานเสร็จแล้ว (ส่งหลักฐาน)
                     </button>
                 )}
                 {isEmployer && escrow.status === 'PENDING_CONFIRMATION' && (
@@ -153,6 +156,19 @@ function EscrowCard({
                     </button>
                 )}
             </div>
+
+            {/* Proof photo upload modal — shown when worker presses work done */}
+            {showProofModal && (
+                <ProofPhotoModal
+                    jobTitle={escrow.job.title}
+                    busy={busy}
+                    onConfirm={(photos) => {
+                        run(() => markWorkDone(escrow.id, photos));
+                        setShowProofModal(false);
+                    }}
+                    onCancel={() => setShowProofModal(false)}
+                />
+            )}
         </div>
     );
 }

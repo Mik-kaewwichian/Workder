@@ -1,4 +1,11 @@
-import { IsIn, IsString, MinLength, MaxLength } from 'class-validator';
+import { IsArray, IsIn, IsOptional, IsString, MinLength, MaxLength } from 'class-validator';
+
+export class MarkWorkDoneDto {
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    proofPhotos?: string[];
+}
 
 export class DisputeEscrowDto {
     @IsString()

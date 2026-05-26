@@ -22,6 +22,7 @@ export type Escrow = {
     autoReleaseAt: string | null;
     disputedAt: string | null;
     disputeReason: string | null;
+    proofPhotos: string | null; // JSON array of base64/URL strings
     job: { id: number; title: string; payAmount: number };
 };
 
@@ -30,8 +31,8 @@ export const listEscrows = async (): Promise<Escrow[]> => {
     return data;
 };
 
-export const markWorkDone = (id: number) =>
-    api.post(`/escrow/${id}/work-done`).then((r) => r.data);
+export const markWorkDone = (id: number, proofPhotos: string[]) =>
+    api.post(`/escrow/${id}/work-done`, { proofPhotos }).then((r) => r.data);
 
 export const confirmEscrow = (id: number) =>
     api.post(`/escrow/${id}/confirm`).then((r) => r.data);

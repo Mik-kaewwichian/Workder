@@ -7,6 +7,7 @@ import Link from 'next/link';
 import {
     ArrowLeft, Users, Briefcase, CheckCircle2, XCircle, Clock,
     Loader2, MessageSquare, UserRound, PackageCheck, AlertTriangle, ShieldCheck, Wallet,
+    UserCheck,
 } from 'lucide-react';
 import api from '../../../lib/api';
 import { getAuthSession } from '../../../features/auth/lib/auth';
@@ -36,6 +37,92 @@ const STATUS_LABEL: Record<string, string> = {
     pending: 'รอการพิจารณา', accepted: 'รับแล้ว', rejected: 'ปฏิเสธแล้ว',
 };
 
+// ── Confirm Worker Modal ───────────────────────────────────────────────────
+
+function ConfirmWorkerModal({
+    workerName,
+    jobTitle,
+    payAmount,
+    onConfirm,
+    onCancel,
+    busy,
+}: {
+    workerName: string;
+    jobTitle: string;
+    payAmount: number;
+    onConfirm: () => void;
+    onCancel: () => void;
+    busy: boolean;
+}) {
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
+
+            {/* Modal */}
+            <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+                {/* Header accent */}
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white">
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <UserCheck size={20} className="text-white" />
+                        </div>
+                        <div>
+                            <p className="text-xs font-semibold text-blue-100 uppercase tracking-wide">ยืนยันการรับงาน</p>
+                            <p className="text-base font-bold">{workerName}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5 space-y-4">
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                        คุณกำลังจะรับ <span className="font-bold text-slate-900">{workerName}</span> เข้าทำงาน{' '}
+                        <span className="font-bold text-slate-900">"{jobTitle}"</span>
+                    </p>
+
+                    <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 space-y-1.5">
+                        <p className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                            <ShieldCheck size={13} className="text-amber-600" /> เงินจะถูกกันไว้ใน Escrow
+                        </p>
+                        <p className="text-xs text-amber-700">
+                            ยอด <span className="font-bold">{payAmount.toLocaleString()} ฿</span> จะถูกหักจากกระเป๋าของคุณทันที
+                            และจะปล่อยให้ผู้รับงานเมื่องานเสร็จ
+                        </p>
+                    </div>
+
+                    <p className="text-xs text-slate-500 text-center">
+                        หากมั่นใจแล้ว กรุณากด "ยืนยัน" เพื่อดำเนินการต่อ
+                    </p>
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 pb-5 flex gap-3">
+                    <button
+                        onClick={onCancel}
+                        disabled={busy}
+                        className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                    >
+                        ยกเลิก
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={busy}
+                        className="flex-1 py-2.5 rounded-xl bg-green-600 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                        {busy ? (
+                            <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                            <CheckCircle2 size={14} />
+                        )}
+                        {busy ? 'กำลังดำเนินการ...' : 'ยืนยัน รับเข้าทำงาน'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── Escrow action panel (Employer side) ────────────────────────────────────
 
 function EscrowActionPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: () => void }) {
@@ -58,6 +145,12 @@ function EscrowActionPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: (
 
     // Worker marked job done → employer must act
     if (escrow.status === 'PENDING_CONFIRMATION') {
+        // Parse proof photos
+        let proofUrls: string[] = [];
+        if (escrow.proofPhotos) {
+            try { proofUrls = JSON.parse(escrow.proofPhotos); } catch { /* ignore */ }
+        }
+
         return (
             <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
                 <div className="flex items-center gap-1.5 mb-2">
@@ -69,6 +162,22 @@ function EscrowActionPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: (
                         <Clock size={10} />
                         หากไม่ดำเนินการ เงินจะปล่อยอัตโนมัติ {new Date(escrow.autoReleaseAt).toLocaleString('th-TH')}
                     </p>
+                )}
+                {/* Proof photos from worker */}
+                {proofUrls.length > 0 && (
+                    <div className="mb-3">
+                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1.5">
+                            หลักฐานการทำงาน ({proofUrls.length} รูป)
+                        </p>
+                        <div className="flex gap-2 flex-wrap">
+                            {proofUrls.map((url, i) => (
+                                <a key={i} href={url} target="_blank" rel="noreferrer" className="block w-16 h-16 rounded-lg overflow-hidden border border-amber-300 hover:opacity-80 transition-opacity">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={url} alt={`proof-${i}`} className="w-full h-full object-cover" />
+                                </a>
+                            ))}
+                        </div>
+                    </div>
                 )}
                 <div className="flex flex-wrap gap-2">
                     <button
@@ -172,6 +281,7 @@ function CandidatesContent() {
     const [updatingId, setUpdatingId] = useState<number | null>(null);
     const [walletBalance, setWalletBalance] = useState<number | null>(null); // satang
     const [insufficientModal, setInsufficientModal] = useState<{ required: number; jobTitle: string } | null>(null);
+    const [confirmModal, setConfirmModal] = useState<{ applicationId: number; workerName: string } | null>(null);
 
     // Load jobs + escrows + wallet together on mount
     useEffect(() => {
@@ -450,7 +560,10 @@ function CandidatesContent() {
                                                         <>
                                                             <button
                                                                 disabled={isUpdating}
-                                                                onClick={() => updateStatus(app.id, 'accepted')}
+                                                                onClick={() => {
+                                                                    const name = [app.worker.firstName, app.worker.lastName].filter(Boolean).join(' ') || 'ไม่ระบุชื่อ';
+                                                                    setConfirmModal({ applicationId: app.id, workerName: name });
+                                                                }}
                                                                 className="flex items-center gap-1 text-xs font-semibold bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
                                                             >
                                                                 {isUpdating ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
@@ -495,6 +608,23 @@ function CandidatesContent() {
                     onClose={() => setInsufficientModal(null)}
                 />
             )}
+
+            {confirmModal && (() => {
+                const job = jobs.find((j) => j.id === selectedJobId);
+                return (
+                    <ConfirmWorkerModal
+                        workerName={confirmModal.workerName}
+                        jobTitle={job?.title ?? ''}
+                        payAmount={job?.payAmount ?? 0}
+                        busy={updatingId === confirmModal.applicationId}
+                        onConfirm={async () => {
+                            await updateStatus(confirmModal.applicationId, 'accepted');
+                            setConfirmModal(null);
+                        }}
+                        onCancel={() => setConfirmModal(null)}
+                    />
+                );
+            })()}
         </div>
     );
 }

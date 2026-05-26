@@ -15977,6 +15977,7 @@ export namespace Prisma {
     autoReleaseAt: Date | null
     disputedAt: Date | null
     disputeReason: string | null
+    proofPhotos: string | null
   }
 
   export type EscrowMaxAggregateOutputType = {
@@ -15994,6 +15995,7 @@ export namespace Prisma {
     autoReleaseAt: Date | null
     disputedAt: Date | null
     disputeReason: string | null
+    proofPhotos: string | null
   }
 
   export type EscrowCountAggregateOutputType = {
@@ -16011,6 +16013,7 @@ export namespace Prisma {
     autoReleaseAt: number
     disputedAt: number
     disputeReason: number
+    proofPhotos: number
     _all: number
   }
 
@@ -16050,6 +16053,7 @@ export namespace Prisma {
     autoReleaseAt?: true
     disputedAt?: true
     disputeReason?: true
+    proofPhotos?: true
   }
 
   export type EscrowMaxAggregateInputType = {
@@ -16067,6 +16071,7 @@ export namespace Prisma {
     autoReleaseAt?: true
     disputedAt?: true
     disputeReason?: true
+    proofPhotos?: true
   }
 
   export type EscrowCountAggregateInputType = {
@@ -16084,6 +16089,7 @@ export namespace Prisma {
     autoReleaseAt?: true
     disputedAt?: true
     disputeReason?: true
+    proofPhotos?: true
     _all?: true
   }
 
@@ -16188,6 +16194,7 @@ export namespace Prisma {
     autoReleaseAt: Date | null
     disputedAt: Date | null
     disputeReason: string | null
+    proofPhotos: string | null
     _count: EscrowCountAggregateOutputType | null
     _avg: EscrowAvgAggregateOutputType | null
     _sum: EscrowSumAggregateOutputType | null
@@ -16224,6 +16231,7 @@ export namespace Prisma {
     autoReleaseAt?: boolean
     disputedAt?: boolean
     disputeReason?: boolean
+    proofPhotos?: boolean
     job?: boolean | JobDefaultArgs<ExtArgs>
     application?: boolean | ApplicationDefaultArgs<ExtArgs>
     employer?: boolean | UserDefaultArgs<ExtArgs>
@@ -16245,6 +16253,7 @@ export namespace Prisma {
     autoReleaseAt?: boolean
     disputedAt?: boolean
     disputeReason?: boolean
+    proofPhotos?: boolean
     job?: boolean | JobDefaultArgs<ExtArgs>
     application?: boolean | ApplicationDefaultArgs<ExtArgs>
     employer?: boolean | UserDefaultArgs<ExtArgs>
@@ -16266,6 +16275,7 @@ export namespace Prisma {
     autoReleaseAt?: boolean
     disputedAt?: boolean
     disputeReason?: boolean
+    proofPhotos?: boolean
     job?: boolean | JobDefaultArgs<ExtArgs>
     application?: boolean | ApplicationDefaultArgs<ExtArgs>
     employer?: boolean | UserDefaultArgs<ExtArgs>
@@ -16287,9 +16297,10 @@ export namespace Prisma {
     autoReleaseAt?: boolean
     disputedAt?: boolean
     disputeReason?: boolean
+    proofPhotos?: boolean
   }
 
-  export type EscrowOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "jobId" | "applicationId" | "employerId" | "workerId" | "amount" | "feeAmount" | "status" | "createdAt" | "releasedAt" | "workerMarkedDoneAt" | "autoReleaseAt" | "disputedAt" | "disputeReason", ExtArgs["result"]["escrow"]>
+  export type EscrowOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "jobId" | "applicationId" | "employerId" | "workerId" | "amount" | "feeAmount" | "status" | "createdAt" | "releasedAt" | "workerMarkedDoneAt" | "autoReleaseAt" | "disputedAt" | "disputeReason" | "proofPhotos", ExtArgs["result"]["escrow"]>
   export type EscrowInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     job?: boolean | JobDefaultArgs<ExtArgs>
     application?: boolean | ApplicationDefaultArgs<ExtArgs>
@@ -16332,6 +16343,7 @@ export namespace Prisma {
       autoReleaseAt: Date | null
       disputedAt: Date | null
       disputeReason: string | null
+      proofPhotos: string | null
     }, ExtArgs["result"]["escrow"]>
     composites: {}
   }
@@ -16773,6 +16785,7 @@ export namespace Prisma {
     readonly autoReleaseAt: FieldRef<"Escrow", 'DateTime'>
     readonly disputedAt: FieldRef<"Escrow", 'DateTime'>
     readonly disputeReason: FieldRef<"Escrow", 'String'>
+    readonly proofPhotos: FieldRef<"Escrow", 'String'>
   }
     
 
@@ -20920,7 +20933,8 @@ export namespace Prisma {
     workerMarkedDoneAt: 'workerMarkedDoneAt',
     autoReleaseAt: 'autoReleaseAt',
     disputedAt: 'disputedAt',
-    disputeReason: 'disputeReason'
+    disputeReason: 'disputeReason',
+    proofPhotos: 'proofPhotos'
   };
 
   export type EscrowScalarFieldEnum = (typeof EscrowScalarFieldEnum)[keyof typeof EscrowScalarFieldEnum]
@@ -22025,6 +22039,7 @@ export namespace Prisma {
     autoReleaseAt?: DateTimeNullableFilter<"Escrow"> | Date | string | null
     disputedAt?: DateTimeNullableFilter<"Escrow"> | Date | string | null
     disputeReason?: StringNullableFilter<"Escrow"> | string | null
+    proofPhotos?: StringNullableFilter<"Escrow"> | string | null
     job?: XOR<JobScalarRelationFilter, JobWhereInput>
     application?: XOR<ApplicationScalarRelationFilter, ApplicationWhereInput>
     employer?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -22046,6 +22061,7 @@ export namespace Prisma {
     autoReleaseAt?: SortOrderInput | SortOrder
     disputedAt?: SortOrderInput | SortOrder
     disputeReason?: SortOrderInput | SortOrder
+    proofPhotos?: SortOrderInput | SortOrder
     job?: JobOrderByWithRelationInput
     application?: ApplicationOrderByWithRelationInput
     employer?: UserOrderByWithRelationInput
@@ -22070,6 +22086,7 @@ export namespace Prisma {
     autoReleaseAt?: DateTimeNullableFilter<"Escrow"> | Date | string | null
     disputedAt?: DateTimeNullableFilter<"Escrow"> | Date | string | null
     disputeReason?: StringNullableFilter<"Escrow"> | string | null
+    proofPhotos?: StringNullableFilter<"Escrow"> | string | null
     job?: XOR<JobScalarRelationFilter, JobWhereInput>
     application?: XOR<ApplicationScalarRelationFilter, ApplicationWhereInput>
     employer?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -22091,6 +22108,7 @@ export namespace Prisma {
     autoReleaseAt?: SortOrderInput | SortOrder
     disputedAt?: SortOrderInput | SortOrder
     disputeReason?: SortOrderInput | SortOrder
+    proofPhotos?: SortOrderInput | SortOrder
     _count?: EscrowCountOrderByAggregateInput
     _avg?: EscrowAvgOrderByAggregateInput
     _max?: EscrowMaxOrderByAggregateInput
@@ -22116,6 +22134,7 @@ export namespace Prisma {
     autoReleaseAt?: DateTimeNullableWithAggregatesFilter<"Escrow"> | Date | string | null
     disputedAt?: DateTimeNullableWithAggregatesFilter<"Escrow"> | Date | string | null
     disputeReason?: StringNullableWithAggregatesFilter<"Escrow"> | string | null
+    proofPhotos?: StringNullableWithAggregatesFilter<"Escrow"> | string | null
   }
 
   export type TopUpWhereInput = {
@@ -23398,6 +23417,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
     job: JobCreateNestedOneWithoutEscrowsInput
     application: ApplicationCreateNestedOneWithoutEscrowInput
     employer: UserCreateNestedOneWithoutEscrowsAsEmployerInput
@@ -23419,6 +23439,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type EscrowUpdateInput = {
@@ -23431,6 +23452,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
     job?: JobUpdateOneRequiredWithoutEscrowsNestedInput
     application?: ApplicationUpdateOneRequiredWithoutEscrowNestedInput
     employer?: UserUpdateOneRequiredWithoutEscrowsAsEmployerNestedInput
@@ -23452,6 +23474,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EscrowCreateManyInput = {
@@ -23469,6 +23492,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type EscrowUpdateManyMutationInput = {
@@ -23481,6 +23505,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EscrowUncheckedUpdateManyInput = {
@@ -23498,6 +23523,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TopUpCreateInput = {
@@ -24742,6 +24768,7 @@ export namespace Prisma {
     autoReleaseAt?: SortOrder
     disputedAt?: SortOrder
     disputeReason?: SortOrder
+    proofPhotos?: SortOrder
   }
 
   export type EscrowAvgOrderByAggregateInput = {
@@ -24769,6 +24796,7 @@ export namespace Prisma {
     autoReleaseAt?: SortOrder
     disputedAt?: SortOrder
     disputeReason?: SortOrder
+    proofPhotos?: SortOrder
   }
 
   export type EscrowMinOrderByAggregateInput = {
@@ -24786,6 +24814,7 @@ export namespace Prisma {
     autoReleaseAt?: SortOrder
     disputedAt?: SortOrder
     disputeReason?: SortOrder
+    proofPhotos?: SortOrder
   }
 
   export type EscrowSumOrderByAggregateInput = {
@@ -26930,6 +26959,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
     job: JobCreateNestedOneWithoutEscrowsInput
     application: ApplicationCreateNestedOneWithoutEscrowInput
     worker: UserCreateNestedOneWithoutEscrowsAsWorkerInput
@@ -26949,6 +26979,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type EscrowCreateOrConnectWithoutEmployerInput = {
@@ -26970,6 +27001,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
     job: JobCreateNestedOneWithoutEscrowsInput
     application: ApplicationCreateNestedOneWithoutEscrowInput
     employer: UserCreateNestedOneWithoutEscrowsAsEmployerInput
@@ -26989,6 +27021,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type EscrowCreateOrConnectWithoutWorkerInput = {
@@ -27429,6 +27462,7 @@ export namespace Prisma {
     autoReleaseAt?: DateTimeNullableFilter<"Escrow"> | Date | string | null
     disputedAt?: DateTimeNullableFilter<"Escrow"> | Date | string | null
     disputeReason?: StringNullableFilter<"Escrow"> | string | null
+    proofPhotos?: StringNullableFilter<"Escrow"> | string | null
   }
 
   export type EscrowUpsertWithWhereUniqueWithoutWorkerInput = {
@@ -28245,6 +28279,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
     application: ApplicationCreateNestedOneWithoutEscrowInput
     employer: UserCreateNestedOneWithoutEscrowsAsEmployerInput
     worker: UserCreateNestedOneWithoutEscrowsAsWorkerInput
@@ -28264,6 +28299,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type EscrowCreateOrConnectWithoutJobInput = {
@@ -28589,6 +28625,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
     job: JobCreateNestedOneWithoutEscrowsInput
     employer: UserCreateNestedOneWithoutEscrowsAsEmployerInput
     worker: UserCreateNestedOneWithoutEscrowsAsWorkerInput
@@ -28608,6 +28645,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type EscrowCreateOrConnectWithoutApplicationInput = {
@@ -28788,6 +28826,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
     job?: JobUpdateOneRequiredWithoutEscrowsNestedInput
     employer?: UserUpdateOneRequiredWithoutEscrowsAsEmployerNestedInput
     worker?: UserUpdateOneRequiredWithoutEscrowsAsWorkerNestedInput
@@ -28807,6 +28846,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type JobCreateWithoutReviewsInput = {
@@ -31733,6 +31773,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type EscrowCreateManyWorkerInput = {
@@ -31749,6 +31790,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type NotificationCreateManyUserInput = {
@@ -32140,6 +32182,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
     job?: JobUpdateOneRequiredWithoutEscrowsNestedInput
     application?: ApplicationUpdateOneRequiredWithoutEscrowNestedInput
     worker?: UserUpdateOneRequiredWithoutEscrowsAsWorkerNestedInput
@@ -32159,6 +32202,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EscrowUncheckedUpdateManyWithoutEmployerInput = {
@@ -32175,6 +32219,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EscrowUpdateWithoutWorkerInput = {
@@ -32187,6 +32232,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
     job?: JobUpdateOneRequiredWithoutEscrowsNestedInput
     application?: ApplicationUpdateOneRequiredWithoutEscrowNestedInput
     employer?: UserUpdateOneRequiredWithoutEscrowsAsEmployerNestedInput
@@ -32206,6 +32252,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EscrowUncheckedUpdateManyWithoutWorkerInput = {
@@ -32222,6 +32269,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type NotificationUpdateWithoutUserInput = {
@@ -32299,6 +32347,7 @@ export namespace Prisma {
     autoReleaseAt?: Date | string | null
     disputedAt?: Date | string | null
     disputeReason?: string | null
+    proofPhotos?: string | null
   }
 
   export type ApplicationUpdateWithoutJobInput = {
@@ -32390,6 +32439,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
     application?: ApplicationUpdateOneRequiredWithoutEscrowNestedInput
     employer?: UserUpdateOneRequiredWithoutEscrowsAsEmployerNestedInput
     worker?: UserUpdateOneRequiredWithoutEscrowsAsWorkerNestedInput
@@ -32409,6 +32459,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EscrowUncheckedUpdateManyWithoutJobInput = {
@@ -32425,6 +32476,7 @@ export namespace Prisma {
     autoReleaseAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     disputeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    proofPhotos?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MessageCreateManyConversationInput = {

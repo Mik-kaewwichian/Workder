@@ -275,6 +275,8 @@ export class EscrowService {
             where: { OR: [{ employerId: userId }, { workerId: userId }] },
             include: {
                 job: { select: { id: true, title: true, payAmount: true } },
+                worker: { select: { id: true, firstName: true, lastName: true } },
+                employer: { select: { id: true, firstName: true, lastName: true } },
             },
             orderBy: { id: 'desc' },
         });

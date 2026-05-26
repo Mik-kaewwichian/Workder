@@ -17,6 +17,7 @@ import {
 } from '../../../features/payments/lib/escrow-api';
 import { formatThb, getWalletSummary } from '../../../features/payments/lib/wallet-api';
 import InsufficientFundsModal from '../../../components/InsufficientFundsModal';
+import ConfirmPaymentModal from '../../../components/ConfirmPaymentModal';
 
 type Applicant = {
     id: number;
@@ -54,6 +55,8 @@ function ConfirmWorkerModal({
     onCancel: () => void;
     busy: boolean;
 }) {
+    const [reviewed, setReviewed] = useState(false);
+
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
@@ -91,9 +94,27 @@ function ConfirmWorkerModal({
                         </p>
                     </div>
 
-                    <p className="text-xs text-slate-500 text-center">
-                        หากมั่นใจแล้ว กรุณากด "ยืนยัน" เพื่อดำเนินการต่อ
-                    </p>
+                    {/* Confirmation checkbox */}
+                    <label className="flex items-start gap-3 cursor-pointer select-none group">
+                        <div className="relative mt-0.5 shrink-0">
+                            <input
+                                type="checkbox"
+                                checked={reviewed}
+                                onChange={(e) => setReviewed(e.target.checked)}
+                                className="sr-only"
+                            />
+                            <div className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${reviewed ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'}`}>
+                                {reviewed && (
+                                    <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                        <span className={`text-sm leading-relaxed font-medium transition-colors ${reviewed ? 'text-slate-800' : 'text-slate-500'}`}>
+                            ท่านได้ตรวจสอบการทำงานแล้วใช่หรือไม่?
+                        </span>
+                    </label>
                 </div>
 
                 {/* Footer */}
@@ -107,8 +128,8 @@ function ConfirmWorkerModal({
                     </button>
                     <button
                         onClick={onConfirm}
-                        disabled={busy}
-                        className="flex-1 py-2.5 rounded-xl bg-green-600 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                        disabled={busy || !reviewed}
+                        className="flex-1 py-2.5 rounded-xl bg-green-600 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                     >
                         {busy ? (
                             <Loader2 size={14} className="animate-spin" />
@@ -125,8 +146,9 @@ function ConfirmWorkerModal({
 
 // ── Escrow action panel (Employer side) ────────────────────────────────────
 
-function EscrowActionPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: () => void }) {
+function EscrowActionPanel({ escrow, workerName, onChanged }: { escrow: Escrow; workerName: string; onChanged: () => void }) {
     const [busy, setBusy] = useState(false);
+    const [showConfirmPayment, setShowConfirmPayment] = useState(false);
 
     const run = async (fn: () => Promise<unknown>) => {
         setBusy(true);
@@ -152,55 +174,70 @@ function EscrowActionPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: (
         }
 
         return (
-            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
-                <div className="flex items-center gap-1.5 mb-2">
-                    <PackageCheck size={14} className="text-amber-600" />
-                    <p className="text-xs font-bold text-amber-700">ผู้รับงานแจ้งว่างานเสร็จแล้ว — กรุณาตรวจสอบและยืนยัน</p>
-                </div>
-                {escrow.autoReleaseAt && (
-                    <p className="text-[11px] text-amber-500 mb-2 flex items-center gap-1">
-                        <Clock size={10} />
-                        หากไม่ดำเนินการ เงินจะปล่อยอัตโนมัติ {new Date(escrow.autoReleaseAt).toLocaleString('th-TH')}
-                    </p>
-                )}
-                {/* Proof photos from worker */}
-                {proofUrls.length > 0 && (
-                    <div className="mb-3">
-                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1.5">
-                            หลักฐานการทำงาน ({proofUrls.length} รูป)
-                        </p>
-                        <div className="flex gap-2 flex-wrap">
-                            {proofUrls.map((url, i) => (
-                                <a key={i} href={url} target="_blank" rel="noreferrer" className="block w-16 h-16 rounded-lg overflow-hidden border border-amber-300 hover:opacity-80 transition-opacity">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={url} alt={`proof-${i}`} className="w-full h-full object-cover" />
-                                </a>
-                            ))}
-                        </div>
+            <>
+                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                        <PackageCheck size={14} className="text-amber-600" />
+                        <p className="text-xs font-bold text-amber-700">ผู้รับงานแจ้งว่างานเสร็จแล้ว — กรุณาตรวจสอบและยืนยัน</p>
                     </div>
-                )}
-                <div className="flex flex-wrap gap-2">
-                    <button
-                        disabled={busy}
-                        onClick={() => run(() => confirmEscrow(escrow.id))}
-                        className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
-                    >
-                        <CheckCircle2 size={12} /> ยืนยันจ่ายเงิน {formatThb(escrow.amount)}
-                    </button>
-                    <button
-                        disabled={busy}
-                        onClick={() => {
-                            const reason = window.prompt('ระบุปัญหาที่พบ (อย่างน้อย 5 ตัวอักษร)');
-                            if (reason && reason.trim().length >= 5) {
-                                run(() => disputeEscrow(escrow.id, reason.trim()));
-                            }
-                        }}
-                        className="flex items-center gap-1.5 rounded-lg border border-rose-300 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 disabled:opacity-50 transition-colors"
-                    >
-                        <AlertTriangle size={12} /> แจ้งปัญหา
-                    </button>
+                    {escrow.autoReleaseAt && (
+                        <p className="text-[11px] text-amber-500 mb-2 flex items-center gap-1">
+                            <Clock size={10} />
+                            หากไม่ดำเนินการ เงินจะปล่อยอัตโนมัติ {new Date(escrow.autoReleaseAt).toLocaleString('th-TH')}
+                        </p>
+                    )}
+                    {/* Proof photos from worker */}
+                    {proofUrls.length > 0 && (
+                        <div className="mb-3">
+                            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1.5">
+                                หลักฐานการทำงาน ({proofUrls.length} รูป)
+                            </p>
+                            <div className="flex gap-2 flex-wrap">
+                                {proofUrls.map((url, i) => (
+                                    <a key={i} href={url} target="_blank" rel="noreferrer" className="block w-16 h-16 rounded-lg overflow-hidden border border-amber-300 hover:opacity-80 transition-opacity">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={url} alt={`proof-${i}`} className="w-full h-full object-cover" />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            disabled={busy}
+                            onClick={() => setShowConfirmPayment(true)}
+                            className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                        >
+                            <CheckCircle2 size={12} /> ยืนยันจ่ายเงิน {formatThb(escrow.amount)}
+                        </button>
+                        <button
+                            disabled={busy}
+                            onClick={() => {
+                                const reason = window.prompt('ระบุปัญหาที่พบ (อย่างน้อย 5 ตัวอักษร)');
+                                if (reason && reason.trim().length >= 5) {
+                                    run(() => disputeEscrow(escrow.id, reason.trim()));
+                                }
+                            }}
+                            className="flex items-center gap-1.5 rounded-lg border border-rose-300 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 disabled:opacity-50 transition-colors"
+                        >
+                            <AlertTriangle size={12} /> แจ้งปัญหา
+                        </button>
+                    </div>
                 </div>
-            </div>
+
+                {showConfirmPayment && (
+                    <ConfirmPaymentModal
+                        amount={escrow.amount}
+                        workerName={workerName}
+                        busy={busy}
+                        onConfirm={async () => {
+                            await run(() => confirmEscrow(escrow.id));
+                            setShowConfirmPayment(false);
+                        }}
+                        onCancel={() => setShowConfirmPayment(false)}
+                    />
+                )}
+            </>
         );
     }
 
@@ -590,7 +627,7 @@ function CandidatesContent() {
                                             )}
 
                                             {/* Escrow lifecycle panel — shown for accepted applicants */}
-                                            {escrow && <EscrowActionPanel escrow={escrow} onChanged={reloadEscrows} />}
+                                            {escrow && <EscrowActionPanel escrow={escrow} workerName={name} onChanged={reloadEscrows} />}
                                         </div>
                                     );
                                 })}

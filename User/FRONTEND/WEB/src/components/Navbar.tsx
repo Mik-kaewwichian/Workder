@@ -78,7 +78,7 @@ export default function Navbar() {
         { label: 'โปรไฟล์', icon: <UserRound className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/profile'); }, comingSoon: false },
         { label: 'การแจ้งเตือน', icon: <Bell className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/notifications'); }, comingSoon: false },
         { label: 'ข้อความ', icon: <MessageSquare className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/messages'); }, comingSoon: false },
-        { label: 'งานของฉัน', icon: <Briefcase className="h-4 w-4" />, onClick: () => handleProtectedMenuClick('/dashboard'), comingSoon: false },
+        { label: 'งานของฉัน', icon: <Briefcase className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/my-jobs'); }, comingSoon: false },
         { label: 'การสมัครงานของฉัน', icon: <CheckCircle2 className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/my-applications'); }, comingSoon: false },
         { label: 'About', icon: <Info className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/about'); }, comingSoon: false },
         { label: 'MyWallet', icon: <Wallet className="h-4 w-4" />, onClick: () => handleProtectedMenuClick('/wallet'), comingSoon: false },

@@ -24,6 +24,8 @@ export type Escrow = {
     disputeReason: string | null;
     proofPhotos: string | null; // JSON array of base64/URL strings
     job: { id: number; title: string; payAmount: number };
+    worker?: { id: number; firstName?: string | null; lastName?: string | null };
+    employer?: { id: number; firstName?: string | null; lastName?: string | null };
 };
 
 export const listEscrows = async (): Promise<Escrow[]> => {

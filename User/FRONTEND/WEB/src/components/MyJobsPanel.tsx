@@ -346,12 +346,20 @@ export default function MyJobsPanel({
                 </div>
 
                 {/* Footer — pinned at bottom */}
-                <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50 shrink-0">
+                <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-between gap-2">
+                    <Link
+                        href="/my-jobs"
+                        onClick={onClose}
+                        className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                        ดูแบบเต็ม <ChevronRight size={11} />
+                    </Link>
                     <Link
                         href="/escrow"
-                        className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-blue-600 transition-colors"
+                        onClick={onClose}
+                        className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-blue-600 transition-colors"
                     >
-                        <ShieldCheck size={11} /> ดูประวัติ Escrow ทั้งหมด <ChevronRight size={11} />
+                        <ShieldCheck size={11} /> ประวัติ Escrow <ChevronRight size={11} />
                     </Link>
                 </div>
             </div>

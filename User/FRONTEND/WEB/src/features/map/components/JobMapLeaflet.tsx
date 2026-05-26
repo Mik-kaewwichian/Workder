@@ -21,12 +21,13 @@ type Props = {
     jobs: Job[];
     mapHeight: number;
     userLocation: UserLocation | null;
+    onJobClick?: (jobId: number) => void;
 };
 
 const BANGKOK_CENTER: [number, number] = [13.7551, 100.5018];
 const RADIUS_M = 10000;
 
-export default function JobMapLeaflet({ jobs, mapHeight, userLocation }: Props) {
+export default function JobMapLeaflet({ jobs, mapHeight, userLocation, onJobClick }: Props) {
     const mapRef = useRef<HTMLDivElement>(null);
     const leafletMapRef = useRef<any>(null);
 
@@ -140,16 +141,29 @@ export default function JobMapLeaflet({ jobs, mapHeight, userLocation }: Props) 
 
             jobs.forEach((job) => {
                 const color = typeColorMap[job.type] ?? '#64748b';
-                L.default.marker([job.lat, job.lng], { icon: avatarIcon(color, job) })
+                const marker = L.default.marker([job.lat, job.lng], { icon: avatarIcon(color, job) })
                     .addTo(map)
                     .bindPopup(`
-                        <div style="min-width:160px">
-                            <h4 style="font-weight:bold;margin-bottom:4px">${job.title}</h4>
-                            <p style="font-size:12px;color:#666;margin:2px 0">${job.company}</p>
-                            <p style="font-size:12px;color:#666;margin:2px 0">⭐ ${job.rating} • ${job.distance}</p>
-                            <p style="font-size:12px;font-weight:bold;color:#16a34a;margin:4px 0 0">${job.salary}</p>
+                        <div style="min-width:180px;font-family:sans-serif;">
+                            <h4 style="font-weight:700;margin:0 0 4px;font-size:13px;color:#0f172a">${job.title}</h4>
+                            <p style="font-size:12px;color:#64748b;margin:2px 0">${job.company}</p>
+                            <p style="font-size:12px;color:#64748b;margin:2px 0">⭐ ${job.rating} • ${job.distance}</p>
+                            <p style="font-size:14px;font-weight:700;color:#16a34a;margin:6px 0 10px">${job.salary}</p>
+                            <a
+                                href="/workboard/${job.id}"
+                                style="display:block;text-align:center;background:#2563eb;color:#fff;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;"
+                            >ดูรายละเอียด →</a>
                         </div>
-                    `);
+                    `, { maxWidth: 220 });
+
+                // Double-click / direct tap on marker icon → navigate immediately
+                marker.on('dblclick', () => {
+                    if (onJobClick) {
+                        onJobClick(job.id);
+                    } else {
+                        window.location.href = `/workboard/${job.id}`;
+                    }
+                });
             });
         });
 

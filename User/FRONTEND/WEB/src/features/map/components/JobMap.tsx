@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
-import { Search, Filter, Star, MapPin, Briefcase, ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Search, Filter, Star, MapPin, Briefcase, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Eye } from 'lucide-react';
 import api from '../../../lib/api';
 import { getAuthSession } from '../../auth/lib/auth';
 
@@ -25,7 +26,7 @@ type Job = {
 
 type UserLocation = { lat: number; lng: number };
 
-const JobMapLeaflet = dynamic<{ jobs: Job[]; mapHeight: number; userLocation: UserLocation | null }>(
+const JobMapLeaflet = dynamic<{ jobs: Job[]; mapHeight: number; userLocation: UserLocation | null; onJobClick?: (id: number) => void }>(
     () => import('./JobMapLeaflet'),
     { ssr: false, loading: () => <div style={{ width: '100%', height: '100%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>กำลังโหลดแผนที่...</div> }
 );
@@ -87,16 +88,19 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 }
 
 export default function JobMap() {
+    const router = useRouter();
     const [allJobs, setAllJobs] = useState<Job[]>(DEMO_JOBS);
     const [mapHeight, setMapHeight] = useState(0);
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
     const [locationStatus, setLocationStatus] = useState<'loading' | 'granted' | 'denied'>('loading');
     const [applyingIds, setApplyingIds] = useState<Set<number>>(new Set());
     const [appliedIds, setAppliedIds] = useState<Set<number>>(new Set());
+    const [workerBusy, setWorkerBusy] = useState(false);
+    const [activeJobId, setActiveJobId] = useState<number | null>(null);
 
     const session = typeof window !== 'undefined' ? getAuthSession() : null;
 
-    // Fetch real jobs from API
+    // Fetch real jobs + pre-populate applied IDs so refresh doesn't reset state
     useEffect(() => {
         api.get('/jobs')
             .then(({ data }) => {
@@ -104,9 +108,30 @@ export default function JobMap() {
                     setAllJobs(data.filter((j: any) => j.status !== 'completed').map(mapApiJob));
                 }
             })
-            .catch(() => {
-                // API unavailable — keep demo data
-            });
+            .catch(() => {/* API unavailable — keep demo data */});
+
+        if (session && session.role !== 'employer') {
+            // Restore which jobs this worker already applied to
+            api.get(`/applications/worker/${session.userId}`)
+                .then(({ data }) => {
+                    if (Array.isArray(data)) {
+                        setAppliedIds(new Set(
+                            data.map((a: { job?: { id: number } }) => a.job?.id).filter(Boolean) as number[]
+                        ));
+                    }
+                })
+                .catch(() => {});
+
+            // Get live workerStatus so we can block applying while busy
+            if (session.accessToken) {
+                api.get('/auth/me')
+                    .then(({ data }) => {
+                        setWorkerBusy(data.workerStatus === 'WORKING');
+                        setActiveJobId(data.activeJobId ?? null);
+                    })
+                    .catch(() => {});
+            }
+        }
     }, []);
 
     useEffect(() => {
@@ -145,8 +170,10 @@ export default function JobMap() {
         : allJobs;
 
     const handleApply = async (job: Job) => {
-        if (!session) {
-            window.location.href = '/login';
+        if (!session) { router.push('/login'); return; }
+        if (!session.profileCompleted) { router.push('/register'); return; }
+        if (workerBusy) {
+            alert(`คุณกำลังทำงานอยู่แล้ว กรุณาทำงานปัจจุบันให้เสร็จก่อน`);
             return;
         }
         if (appliedIds.has(job.id) || applyingIds.has(job.id)) return;
@@ -161,6 +188,9 @@ export default function JobMap() {
                 setAppliedIds((prev) => new Set(prev).add(job.id));
             } else if (msg === 'You cannot apply to your own job') {
                 alert('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
+            } else if (msg === 'WORKER_BUSY') {
+                setWorkerBusy(true);
+                alert('คุณกำลังทำงานอยู่แล้ว กรุณาทำงานปัจจุบันให้เสร็จก่อน');
             } else {
                 alert(msg || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
             }
@@ -223,7 +253,12 @@ export default function JobMap() {
                 {/* Leaflet Map */}
                 {mapHeight > 0 && locationStatus !== 'loading' && (
                     <div style={{ height: mapHeight, width: '100%', zIndex: 0 }}>
-                        <JobMapLeaflet jobs={jobs} mapHeight={mapHeight} userLocation={userLocation} />
+                        <JobMapLeaflet
+                            jobs={jobs}
+                            mapHeight={mapHeight}
+                            userLocation={userLocation}
+                            onJobClick={(id) => router.push(`/workboard/${id}`)}
+                        />
                     </div>
                 )}
                 {mapHeight > 0 && locationStatus === 'loading' && (
@@ -272,12 +307,21 @@ export default function JobMap() {
                                             </div>
                                         </div>
                                         <div className="mt-3 flex gap-2">
-                                            <div className="flex-1 text-center text-xs font-bold text-blue-600 py-1">
-                                                {job.salary}
-                                            </div>
+                                            {/* View detail button — always shown */}
+                                            <Link
+                                                href={`/workboard/${job.id}`}
+                                                className="flex items-center justify-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                                            >
+                                                <Eye size={11} /> ดู
+                                            </Link>
+
                                             {isOwnJob ? (
                                                 <span className="flex-1 flex items-center justify-center gap-1 text-xs font-bold py-1.5 rounded-lg bg-slate-100 text-slate-500 cursor-default">
                                                     งานของคุณ
+                                                </span>
+                                            ) : workerBusy ? (
+                                                <span className="flex-1 flex items-center justify-center gap-1 text-xs font-bold py-1.5 rounded-lg bg-amber-100 text-amber-700 cursor-not-allowed">
+                                                    <Briefcase size={11} /> กำลังทำงาน
                                                 </span>
                                             ) : (
                                                 <button

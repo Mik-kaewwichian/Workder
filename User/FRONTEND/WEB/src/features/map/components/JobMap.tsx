@@ -5,9 +5,10 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
-import { Search, Filter, Star, MapPin, Briefcase, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Eye } from 'lucide-react';
+import { Search, Filter, MapPin, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import api from '../../../lib/api';
 import { getAuthSession } from '../../auth/lib/auth';
+// Note: Link/useRouter kept for onJobClick navigation passed to JobMapLeaflet
 
 type Job = {
     id: number;
@@ -32,7 +33,6 @@ const JobMapLeaflet = dynamic<{ jobs: Job[]; mapHeight: number; userLocation: Us
 );
 
 const SEARCH_BAR_H = 57;
-const BOTTOM_CARD_H = 148;
 const NAVBAR_H = 64;
 const RADIUS_KM = 10;
 
@@ -93,10 +93,6 @@ export default function JobMap() {
     const [mapHeight, setMapHeight] = useState(0);
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
     const [locationStatus, setLocationStatus] = useState<'loading' | 'granted' | 'denied'>('loading');
-    const [applyingIds, setApplyingIds] = useState<Set<number>>(new Set());
-    const [appliedIds, setAppliedIds] = useState<Set<number>>(new Set());
-    const [workerBusy, setWorkerBusy] = useState(false);
-    const [activeJobId, setActiveJobId] = useState<number | null>(null);
 
     const session = typeof window !== 'undefined' ? getAuthSession() : null;
 
@@ -110,33 +106,11 @@ export default function JobMap() {
             })
             .catch(() => {/* API unavailable — keep demo data */});
 
-        if (session && session.role !== 'employer') {
-            // Restore which jobs this worker already applied to
-            api.get(`/applications/worker/${session.userId}`)
-                .then(({ data }) => {
-                    if (Array.isArray(data)) {
-                        setAppliedIds(new Set(
-                            data.map((a: { job?: { id: number } }) => a.job?.id).filter(Boolean) as number[]
-                        ));
-                    }
-                })
-                .catch(() => {});
-
-            // Get live workerStatus so we can block applying while busy
-            if (session.accessToken) {
-                api.get('/auth/me')
-                    .then(({ data }) => {
-                        setWorkerBusy(data.workerStatus === 'WORKING');
-                        setActiveJobId(data.activeJobId ?? null);
-                    })
-                    .catch(() => {});
-            }
-        }
     }, []);
 
     useEffect(() => {
         const calc = () => {
-            setMapHeight(window.innerHeight - NAVBAR_H - SEARCH_BAR_H - BOTTOM_CARD_H);
+            setMapHeight(window.innerHeight - NAVBAR_H - SEARCH_BAR_H);
         };
         calc();
         window.addEventListener('resize', calc);
@@ -169,43 +143,6 @@ export default function JobMap() {
             })
         : allJobs;
 
-    const handleApply = async (job: Job) => {
-        if (!session) { router.push('/login'); return; }
-        if (!session.profileCompleted) { router.push('/register'); return; }
-        if (workerBusy) {
-            alert(`คุณกำลังทำงานอยู่แล้ว กรุณาทำงานปัจจุบันให้เสร็จก่อน`);
-            return;
-        }
-        if (appliedIds.has(job.id) || applyingIds.has(job.id)) return;
-
-        setApplyingIds((prev) => new Set(prev).add(job.id));
-        try {
-            await api.post('/applications', { jobId: job.id, workerId: Number(session.userId) });
-            setAppliedIds((prev) => new Set(prev).add(job.id));
-        } catch (err: any) {
-            const msg = err?.response?.data?.message;
-            if (msg === 'Already applied to this job') {
-                setAppliedIds((prev) => new Set(prev).add(job.id));
-            } else if (msg === 'You cannot apply to your own job') {
-                alert('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
-            } else if (msg === 'WORKER_BUSY') {
-                setWorkerBusy(true);
-                alert('คุณกำลังทำงานอยู่แล้ว กรุณาทำงานปัจจุบันให้เสร็จก่อน');
-            } else {
-                alert(msg || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
-            }
-        } finally {
-            setApplyingIds((prev) => { const s = new Set(prev); s.delete(job.id); return s; });
-        }
-    };
-
-    const typeColor: Record<string, string> = {
-        'งานด่วน': 'bg-red-100 text-red-600',
-        'เซฟโซน': 'bg-pink-100 text-pink-600',
-        'Premium': 'bg-amber-100 text-amber-600',
-        'ฟูลไทม์': 'bg-blue-100 text-blue-600',
-        'พาร์ทไทม์': 'bg-green-100 text-green-600',
-    };
 
     return (
         <>
@@ -270,83 +207,6 @@ export default function JobMap() {
                     </div>
                 )}
 
-                {/* Bottom Card — Job List */}
-                <div className="bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 overflow-x-auto whitespace-nowrap">
-                    {jobs.length === 0 ? (
-                        <div className="py-4 text-center text-slate-400 text-sm">
-                            ไม่พบงานในรัศมี {RADIUS_KM} กม. จากตำแหน่งของคุณ
-                        </div>
-                    ) : (
-                        <div className="inline-flex gap-4 pb-2">
-                            {jobs.map((job) => {
-                                const isApplying = applyingIds.has(job.id);
-                                const isApplied = appliedIds.has(job.id);
-                                const isOwnJob = !!session && job.postedById === Number(session.userId);
-                                return (
-                                    <div key={job.id} className="inline-block w-64 bg-white border border-slate-200 hover:border-blue-500 rounded-xl p-3 shadow-sm transition-colors whitespace-normal">
-                                        <div className="flex items-start gap-3">
-                                            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                                                <Briefcase size={18} />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-0.5">
-                                                    <h4 className="font-bold text-slate-900 text-sm truncate">{job.title}</h4>
-                                                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${typeColor[job.type] ?? 'bg-slate-100 text-slate-600'}`}>
-                                                        {job.type}
-                                                    </span>
-                                                </div>
-                                                <p className="text-xs text-slate-500">{job.company}</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="flex items-center gap-1 text-xs text-orange-500 font-medium">
-                                                        <Star size={10} fill="currentColor" /> {job.rating}
-                                                    </span>
-                                                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                                                        <MapPin size={10} /> {job.distance}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="mt-3 flex gap-2">
-                                            {/* View detail button — always shown */}
-                                            <Link
-                                                href={`/workboard/${job.id}`}
-                                                className="flex items-center justify-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
-                                            >
-                                                <Eye size={11} /> ดู
-                                            </Link>
-
-                                            {isOwnJob ? (
-                                                <span className="flex-1 flex items-center justify-center gap-1 text-xs font-bold py-1.5 rounded-lg bg-slate-100 text-slate-500 cursor-default">
-                                                    งานของคุณ
-                                                </span>
-                                            ) : workerBusy ? (
-                                                <span className="flex-1 flex items-center justify-center gap-1 text-xs font-bold py-1.5 rounded-lg bg-amber-100 text-amber-700 cursor-not-allowed">
-                                                    <Briefcase size={11} /> กำลังทำงาน
-                                                </span>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleApply(job)}
-                                                    disabled={isApplying || isApplied}
-                                                    className={`flex-1 flex items-center justify-center gap-1 text-xs font-bold py-1.5 rounded-lg active:scale-95 transition-all
-                                                        ${isApplied
-                                                            ? 'bg-green-100 text-green-700 cursor-default'
-                                                            : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60'
-                                                        }`}
-                                                >
-                                                    {isApplying ? (
-                                                        <Loader2 size={12} className="animate-spin" />
-                                                    ) : isApplied ? (
-                                                        <><CheckCircle2 size={12} /> สมัครแล้ว</>
-                                                    ) : 'สมัครงาน'}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
 
             </div>
         </>

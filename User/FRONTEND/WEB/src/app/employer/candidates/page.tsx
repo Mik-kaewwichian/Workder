@@ -4,9 +4,18 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
 import Link from 'next/link';
-import { ArrowLeft, Users, Briefcase, CheckCircle2, XCircle, Clock, Loader2, MessageSquare, UserRound } from 'lucide-react';
+import {
+    ArrowLeft, Users, Briefcase, CheckCircle2, XCircle, Clock,
+    Loader2, MessageSquare, UserRound, PackageCheck, AlertTriangle, ShieldCheck, Wallet,
+} from 'lucide-react';
 import api from '../../../lib/api';
 import { getAuthSession } from '../../../features/auth/lib/auth';
+import {
+    listEscrows, confirmEscrow, disputeEscrow, cancelEscrow,
+    type Escrow,
+} from '../../../features/payments/lib/escrow-api';
+import { formatThb, getWalletSummary } from '../../../features/payments/lib/wallet-api';
+import InsufficientFundsModal from '../../../components/InsufficientFundsModal';
 
 type Applicant = {
     id: number;
@@ -27,6 +36,127 @@ const STATUS_LABEL: Record<string, string> = {
     pending: 'รอการพิจารณา', accepted: 'รับแล้ว', rejected: 'ปฏิเสธแล้ว',
 };
 
+// ── Escrow action panel (Employer side) ────────────────────────────────────
+
+function EscrowActionPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: () => void }) {
+    const [busy, setBusy] = useState(false);
+
+    const run = async (fn: () => Promise<unknown>) => {
+        setBusy(true);
+        try {
+            await fn();
+            onChanged();
+        } catch (e: unknown) {
+            const msg =
+                (e as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+                'ดำเนินการไม่สำเร็จ';
+            window.alert(msg);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    // Worker marked job done → employer must act
+    if (escrow.status === 'PENDING_CONFIRMATION') {
+        return (
+            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <div className="flex items-center gap-1.5 mb-2">
+                    <PackageCheck size={14} className="text-amber-600" />
+                    <p className="text-xs font-bold text-amber-700">ผู้รับงานแจ้งว่างานเสร็จแล้ว — กรุณาตรวจสอบและยืนยัน</p>
+                </div>
+                {escrow.autoReleaseAt && (
+                    <p className="text-[11px] text-amber-500 mb-2 flex items-center gap-1">
+                        <Clock size={10} />
+                        หากไม่ดำเนินการ เงินจะปล่อยอัตโนมัติ {new Date(escrow.autoReleaseAt).toLocaleString('th-TH')}
+                    </p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        disabled={busy}
+                        onClick={() => run(() => confirmEscrow(escrow.id))}
+                        className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                    >
+                        <CheckCircle2 size={12} /> ยืนยันจ่ายเงิน {formatThb(escrow.amount)}
+                    </button>
+                    <button
+                        disabled={busy}
+                        onClick={() => {
+                            const reason = window.prompt('ระบุปัญหาที่พบ (อย่างน้อย 5 ตัวอักษร)');
+                            if (reason && reason.trim().length >= 5) {
+                                run(() => disputeEscrow(escrow.id, reason.trim()));
+                            }
+                        }}
+                        className="flex items-center gap-1.5 rounded-lg border border-rose-300 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 disabled:opacity-50 transition-colors"
+                    >
+                        <AlertTriangle size={12} /> แจ้งปัญหา
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Escrow held, job in progress — employer can cancel before work starts
+    if (escrow.status === 'HELD') {
+        return (
+            <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="text-xs font-semibold text-blue-700 flex items-center gap-1">
+                        <ShieldCheck size={12} /> เงินถูกกันไว้ {formatThb(escrow.amount)} — รอผู้รับงานเริ่มงาน
+                    </p>
+                    <button
+                        disabled={busy}
+                        onClick={() => {
+                            if (window.confirm('ยกเลิกงานนี้และคืนเงินเข้ากระเป๋าของคุณ?')) {
+                                run(() => cancelEscrow(escrow.id));
+                            }
+                        }}
+                        className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-colors"
+                    >
+                        <XCircle size={12} /> ยกเลิก & คืนเงิน
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (escrow.status === 'RELEASED') {
+        return (
+            <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+                <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                    <CheckCircle2 size={12} /> จ่ายเงินแล้ว {formatThb(escrow.amount)} ให้ผู้รับงาน
+                </p>
+            </div>
+        );
+    }
+
+    if (escrow.status === 'REFUNDED') {
+        return (
+            <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <p className="text-xs text-slate-500 flex items-center gap-1">
+                    <XCircle size={12} /> คืนเงินแล้ว — งานถูกยกเลิก
+                </p>
+            </div>
+        );
+    }
+
+    if (escrow.status === 'DISPUTED') {
+        return (
+            <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50 p-3">
+                <p className="text-xs font-semibold text-rose-600 flex items-center gap-1">
+                    <AlertTriangle size={12} /> อยู่ระหว่างการตรวจสอบโดยทีมงาน
+                </p>
+                {escrow.disputeReason && (
+                    <p className="text-[11px] text-rose-400 mt-0.5">"{escrow.disputeReason}"</p>
+                )}
+            </div>
+        );
+    }
+
+    return null;
+}
+
+// ── Page content ───────────────────────────────────────────────────────────
+
 function CandidatesContent() {
     const params = useSearchParams();
     const router = useRouter();
@@ -36,24 +166,40 @@ function CandidatesContent() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [selectedJobId, setSelectedJobId] = useState<number | null>(jobIdParam ? parseInt(jobIdParam) : null);
     const [applicants, setApplicants] = useState<Applicant[]>([]);
+    const [escrowMap, setEscrowMap] = useState<Map<number, Escrow>>(new Map());
     const [loadingJobs, setLoadingJobs] = useState(true);
     const [loadingApplicants, setLoadingApplicants] = useState(false);
     const [updatingId, setUpdatingId] = useState<number | null>(null);
+    const [walletBalance, setWalletBalance] = useState<number | null>(null); // satang
+    const [insufficientModal, setInsufficientModal] = useState<{ required: number; jobTitle: string } | null>(null);
 
+    // Load jobs + escrows + wallet together on mount
     useEffect(() => {
         const session = getAuthSession();
         if (!session) return;
-        api.get(`/jobs?postedById=${session.userId}`)
-            .then(({ data }) => {
-                setJobs(Array.isArray(data) ? data : []);
-                if (!selectedJobId && Array.isArray(data) && data.length > 0) {
-                    setSelectedJobId(data[0].id);
-                }
-            })
-            .catch(() => setJobs([]))
-            .finally(() => setLoadingJobs(false));
+        Promise.all([
+            api.get(`/jobs?postedById=${session.userId}`),
+            listEscrows(),
+            getWalletSummary().catch(() => null),
+        ]).then(([jobsRes, escrows, wallet]) => {
+            const jobList = Array.isArray(jobsRes.data) ? jobsRes.data : [];
+            setJobs(jobList);
+            if (!selectedJobId && jobList.length > 0) setSelectedJobId(jobList[0].id);
+            const map = new Map<number, Escrow>();
+            for (const e of escrows) map.set(e.applicationId, e);
+            setEscrowMap(map);
+            if (wallet) setWalletBalance(wallet.balance);
+        }).catch(() => setJobs([])).finally(() => setLoadingJobs(false));
     }, []);
 
+    const refreshWallet = async () => {
+        try {
+            const w = await getWalletSummary();
+            setWalletBalance(w.balance);
+        } catch { /* ignore */ }
+    };
+
+    // Reload applicants when selected job changes
     useEffect(() => {
         if (!selectedJobId) return;
         setLoadingApplicants(true);
@@ -63,13 +209,51 @@ function CandidatesContent() {
             .finally(() => setLoadingApplicants(false));
     }, [selectedJobId]);
 
+    // Reload escrows after any escrow action
+    const reloadEscrows = async () => {
+        try {
+            const escrows = await listEscrows();
+            const map = new Map<number, Escrow>();
+            for (const e of escrows) map.set(e.applicationId, e);
+            setEscrowMap(map);
+        } catch { /* ignore */ }
+    };
+
     const updateStatus = async (applicationId: number, status: 'accepted' | 'rejected') => {
+        // Pre-check wallet balance before attempting to accept
+        if (status === 'accepted') {
+            const job = jobs.find((j) => j.id === selectedJobId);
+            if (job && walletBalance !== null) {
+                const required = job.payAmount * 100; // THB → satang
+                if (walletBalance < required) {
+                    setInsufficientModal({ required, jobTitle: job.title });
+                    return;
+                }
+            }
+        }
+
         setUpdatingId(applicationId);
         try {
             await api.patch(`/applications/${applicationId}/status`, { status });
             setApplicants((prev) => prev.map((a) => a.id === applicationId ? { ...a, status } : a));
-        } catch { /* ignore */ }
-        finally { setUpdatingId(null); }
+            // Refresh escrows so the new HELD panel appears immediately
+            await reloadEscrows();
+            await refreshWallet(); // balance went down after escrow hold
+        } catch (err: unknown) {
+            const code = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            if (code === 'INSUFFICIENT_FUNDS') {
+                // Fallback for race conditions (e.g. balance changed since page load)
+                const job = jobs.find((j) => j.id === selectedJobId);
+                if (job) {
+                    setInsufficientModal({ required: job.payAmount * 100, jobTitle: job.title });
+                }
+                await refreshWallet();
+            } else {
+                window.alert('ดำเนินการไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+            }
+        } finally {
+            setUpdatingId(null);
+        }
     };
 
     const startChat = async (workerId: number) => {
@@ -93,6 +277,10 @@ function CandidatesContent() {
 
     const selectedJob = jobs.find((j) => j.id === selectedJobId);
 
+    // Count pending-confirmation across all jobs for the job selector badge
+    const pendingConfirmCount = (jobId: number) =>
+        applicants.filter((a) => a.status === 'accepted' && escrowMap.get(a.id)?.status === 'PENDING_CONFIRMATION' && selectedJobId === jobId).length;
+
     return (
         <div className="min-h-screen bg-slate-50 pt-20 pb-12">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -109,6 +297,41 @@ function CandidatesContent() {
                     </div>
                 </div>
 
+                {/* Wallet balance banner — warns if it can't cover selected job's escrow */}
+                {walletBalance !== null && selectedJob && (() => {
+                    const required = selectedJob.payAmount * 100;
+                    const insufficient = walletBalance < required;
+                    return (
+                        <div className={`mb-6 rounded-2xl border px-4 py-3 flex items-center justify-between gap-3 ${insufficient ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200'}`}>
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${insufficient ? 'bg-amber-100' : 'bg-blue-50'}`}>
+                                    {insufficient
+                                        ? <AlertTriangle className="h-5 w-5 text-amber-600" />
+                                        : <Wallet className="h-5 w-5 text-blue-600" />}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className={`text-sm font-bold ${insufficient ? 'text-amber-800' : 'text-slate-800'}`}>
+                                        ยอดในกระเป๋า: {formatThb(walletBalance)}
+                                    </p>
+                                    <p className={`text-xs mt-0.5 ${insufficient ? 'text-amber-700' : 'text-slate-500'}`}>
+                                        {insufficient
+                                            ? `ไม่พอสำหรับมัดจำงานนี้ (ต้องการ ${formatThb(required)} • ขาด ${formatThb(required - walletBalance)})`
+                                            : `เพียงพอสำหรับมัดจำงานนี้ (${formatThb(required)})`}
+                                    </p>
+                                </div>
+                            </div>
+                            {insufficient && (
+                                <Link
+                                    href="/wallet"
+                                    className="shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                                >
+                                    <Wallet size={13} /> เติมเงิน
+                                </Link>
+                            )}
+                        </div>
+                    );
+                })()}
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Job Selector */}
                     <div className="md:col-span-1">
@@ -122,26 +345,34 @@ function CandidatesContent() {
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                {jobs.map((job) => (
-                                    <button
-                                        key={job.id}
-                                        onClick={() => setSelectedJobId(job.id)}
-                                        className={`w-full text-left rounded-xl border p-4 transition-all ${selectedJobId === job.id
-                                            ? 'border-blue-500 bg-blue-50 shadow-sm'
-                                            : 'border-slate-200 bg-white hover:border-slate-300'
-                                            }`}
-                                    >
-                                        <div className="flex items-start gap-2">
-                                            <Briefcase size={16} className={selectedJobId === job.id ? 'text-blue-600 mt-0.5' : 'text-slate-400 mt-0.5'} />
-                                            <div className="min-w-0">
-                                                <p className={`font-semibold text-sm truncate ${selectedJobId === job.id ? 'text-blue-700' : 'text-slate-800'}`}>
-                                                    {job.title}
-                                                </p>
-                                                <p className="text-xs text-slate-500 mt-0.5">{job.payAmount}฿ • {job.type}</p>
+                                {jobs.map((job) => {
+                                    const hasPendingConfirm = pendingConfirmCount(job.id) > 0;
+                                    return (
+                                        <button
+                                            key={job.id}
+                                            onClick={() => setSelectedJobId(job.id)}
+                                            className={`w-full text-left rounded-xl border p-4 transition-all ${selectedJobId === job.id
+                                                ? 'border-blue-500 bg-blue-50 shadow-sm'
+                                                : 'border-slate-200 bg-white hover:border-slate-300'
+                                                }`}
+                                        >
+                                            <div className="flex items-start gap-2">
+                                                <Briefcase size={16} className={selectedJobId === job.id ? 'text-blue-600 mt-0.5' : 'text-slate-400 mt-0.5'} />
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <p className={`font-semibold text-sm truncate ${selectedJobId === job.id ? 'text-blue-700' : 'text-slate-800'}`}>
+                                                            {job.title}
+                                                        </p>
+                                                        {hasPendingConfirm && (
+                                                            <span className="flex-shrink-0 h-2 w-2 rounded-full bg-amber-400" title="มีงานรอยืนยัน" />
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 mt-0.5">{job.payAmount}฿ • {job.type}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                ))}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -177,57 +408,76 @@ function CandidatesContent() {
                                     const name = [app.worker.firstName, app.worker.lastName].filter(Boolean).join(' ') || 'ไม่ระบุชื่อ';
                                     const initial = name.charAt(0);
                                     const isUpdating = updatingId === app.id;
+                                    const escrow = escrowMap.get(app.id);
+                                    // Highlight cards where employer action is needed
+                                    const needsAction = escrow?.status === 'PENDING_CONFIRMATION';
+
                                     return (
-                                        <div key={app.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
-                                            <Link href={`/profile/${app.worker.id}`} className="h-11 w-11 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0 hover:ring-2 hover:ring-blue-400 transition-all">
-                                                {initial}
-                                            </Link>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <Link href={`/profile/${app.worker.id}`} className="font-semibold text-slate-900 hover:text-blue-600 transition-colors">{name}</Link>
-                                                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[app.status] ?? 'bg-slate-100 text-slate-600'}`}>
-                                                        {STATUS_LABEL[app.status] ?? app.status}
-                                                    </span>
-                                                </div>
-                                                <p className="text-xs text-slate-500 mt-0.5">{app.worker.email ?? ''} {app.worker.phone ? `• ${app.worker.phone}` : ''}</p>
-                                                {app.message && <p className="text-xs text-slate-600 mt-1 italic">"{app.message}"</p>}
-                                                <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1"><Clock size={10} /> สมัครเมื่อ {formatDate(app.createdAt)}</p>
-                                            </div>
-                                            <div className="flex gap-2 flex-shrink-0">
-                                                <Link
-                                                    href={`/profile/${app.worker.id}?applicationId=${app.id}`}
-                                                    className="flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
-                                                >
-                                                    <UserRound size={12} /> ดูโปรไฟล์
+                                        <div
+                                            key={app.id}
+                                            className={`bg-white rounded-xl border p-4 ${needsAction ? 'border-amber-300 shadow-amber-100 shadow-sm' : 'border-slate-200'}`}
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <Link href={`/profile/${app.worker.id}`} className="h-11 w-11 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0 hover:ring-2 hover:ring-blue-400 transition-all">
+                                                    {initial}
                                                 </Link>
-                                                <button
-                                                    disabled={chattingId === app.worker.id}
-                                                    onClick={() => startChat(app.worker.id)}
-                                                    className="flex items-center gap-1 text-xs font-semibold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors"
-                                                >
-                                                    {chattingId === app.worker.id ? <Loader2 size={12} className="animate-spin" /> : <MessageSquare size={12} />}
-                                                    แชท
-                                                </button>
-                                                {app.status === 'pending' && (
-                                                    <>
-                                                        <button
-                                                            disabled={isUpdating}
-                                                            onClick={() => updateStatus(app.id, 'accepted')}
-                                                            className="flex items-center gap-1 text-xs font-semibold bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-                                                        >
-                                                            {isUpdating ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
-                                                            รับ
-                                                        </button>
-                                                        <button
-                                                            disabled={isUpdating}
-                                                            onClick={() => updateStatus(app.id, 'rejected')}
-                                                            className="flex items-center gap-1 text-xs font-semibold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-50 transition-colors"
-                                                        >
-                                                            <XCircle size={12} /> ปฏิเสธ
-                                                        </button>
-                                                    </>
-                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <Link href={`/profile/${app.worker.id}`} className="font-semibold text-slate-900 hover:text-blue-600 transition-colors">{name}</Link>
+                                                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[app.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                                                            {STATUS_LABEL[app.status] ?? app.status}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 mt-0.5">{app.worker.email ?? ''} {app.worker.phone ? `• ${app.worker.phone}` : ''}</p>
+                                                    <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1"><Clock size={10} /> สมัครเมื่อ {formatDate(app.createdAt)}</p>
+                                                </div>
+                                                <div className="flex gap-2 flex-shrink-0">
+                                                    <Link
+                                                        href={`/profile/${app.worker.id}?applicationId=${app.id}`}
+                                                        className="flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+                                                    >
+                                                        <UserRound size={12} /> ดูโปรไฟล์
+                                                    </Link>
+                                                    <button
+                                                        disabled={chattingId === app.worker.id}
+                                                        onClick={() => startChat(app.worker.id)}
+                                                        className="flex items-center gap-1 text-xs font-semibold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors"
+                                                    >
+                                                        {chattingId === app.worker.id ? <Loader2 size={12} className="animate-spin" /> : <MessageSquare size={12} />}
+                                                        แชท
+                                                    </button>
+                                                    {app.status === 'pending' && (
+                                                        <>
+                                                            <button
+                                                                disabled={isUpdating}
+                                                                onClick={() => updateStatus(app.id, 'accepted')}
+                                                                className="flex items-center gap-1 text-xs font-semibold bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                                                            >
+                                                                {isUpdating ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                                                                รับ
+                                                            </button>
+                                                            <button
+                                                                disabled={isUpdating}
+                                                                onClick={() => updateStatus(app.id, 'rejected')}
+                                                                className="flex items-center gap-1 text-xs font-semibold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                                                            >
+                                                                <XCircle size={12} /> ปฏิเสธ
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
+
+                                            {/* Work experience submitted by the worker */}
+                                            {app.message && (
+                                                <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">ประสบการณ์ทำงาน</p>
+                                                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{app.message}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Escrow lifecycle panel — shown for accepted applicants */}
+                                            {escrow && <EscrowActionPanel escrow={escrow} onChanged={reloadEscrows} />}
                                         </div>
                                     );
                                 })}
@@ -236,6 +486,15 @@ function CandidatesContent() {
                     </div>
                 </div>
             </div>
+
+            {insufficientModal && walletBalance !== null && (
+                <InsufficientFundsModal
+                    currentBalance={walletBalance}
+                    requiredAmount={insufficientModal.required}
+                    jobTitle={insufficientModal.jobTitle}
+                    onClose={() => setInsufficientModal(null)}
+                />
+            )}
         </div>
     );
 }

@@ -1,15 +1,22 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto, UpdateApplicationStatusDto } from './applications.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUserId } from '../../common/decorators/current-user.decorator';
 
 @Controller('applications')
 export class ApplicationsController {
     constructor(private readonly applicationsService: ApplicationsService) {}
 
-    // Worker applies to a job
+    /**
+     * Worker applies to a job.
+     * workerId is taken from the JWT — the body value is ignored so a logged-in
+     * user can never submit on behalf of another worker.
+     */
+    @UseGuards(JwtAuthGuard)
     @Post()
-    apply(@Body() dto: CreateApplicationDto) {
-        return this.applicationsService.apply(dto);
+    apply(@CurrentUserId() workerId: number, @Body() dto: CreateApplicationDto) {
+        return this.applicationsService.apply(dto, workerId);
     }
 
     // Employer sees all applicants for their job

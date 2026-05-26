@@ -14,9 +14,9 @@ const LocationPicker = dynamic(
 
 const JOB_TYPES = [
     { value: 'urgent', label: 'งานด่วน' },
-    { value: 'parttime', label: 'Part-time' },
-    { value: 'fulltime', label: 'Full-time' },
-    { value: 'safezone', label: 'Safezone' },
+    { value: 'parttime', label: 'พาร์ทไทม์' },
+    { value: 'fulltime', label: 'งานประจำ' },
+    { value: 'safezone', label: 'งานความปลอดภัย' },
 ];
 
 const JOB_CATEGORIES = [

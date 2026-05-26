@@ -1,20 +1,23 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Gift, Megaphone, CreditCard, Zap, Bell, MessageSquare } from 'lucide-react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import api from '../lib/api';
+import { getAuthSession, AUTH_STORAGE_KEY } from '../features/auth/lib/auth';
 
-// Types
-export type NotificationChannel = {
-    id: string;
-    name: string;
-    description: string;
-    icon: React.ReactNode;
-    color: string;
-    unreadCount: number;
-    lastMessage: string;
-    timestamp: string;
+// Real notification record returned by GET /notifications
+export type Notification = {
+    id: number;
+    type: string;
+    title: string;
+    body: string;
+    link: string | null;
+    refType: string | null;
+    refId: number | null;
+    readAt: string | null;
+    createdAt: string;
 };
 
+// Chats kept as a localStorage stub for now — out of scope for the backend port.
 export type ChatMessage = {
     id: number;
     name: string;
@@ -25,89 +28,94 @@ export type ChatMessage = {
 };
 
 type NotificationContextType = {
-    channels: NotificationChannel[];
+    notifications: Notification[];
     chats: ChatMessage[];
     unreadNotificationsCount: number;
     unreadMessagesCount: number;
     totalUnreadCount: number;
-    markNotificationAsRead: (id: string) => void;
+    markNotificationAsRead: (id: number) => Promise<void>;
     markChatAsRead: (id: number) => void;
-    markAllAsRead: () => void;
+    markAllAsRead: () => Promise<void>;
+    refreshNotifications: () => Promise<void>;
 };
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-const initialChannels: NotificationChannel[] = [];
-const initialChats: ChatMessage[] = [];
+const POLL_INTERVAL_MS = 20_000;
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-    const [channels, setChannels] = useState<NotificationChannel[]>(initialChannels);
-    const [chats, setChats] = useState<ChatMessage[]>(initialChats);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [chats, setChats] = useState<ChatMessage[]>([]);
+    const sessionRef = useRef<ReturnType<typeof getAuthSession>>(null);
 
-    // Load from localStorage
-    useEffect(() => {
-        const savedChannels = localStorage.getItem('notifications_channels_v4');
-        const savedChats = localStorage.getItem('notifications_chats_v4');
-
-        if (savedChannels) {
-            try {
-                const parsedChannels = JSON.parse(savedChannels);
-                // Re-attach icons
-                setChannels(parsedChannels.map((c: any) => ({
-                    ...c,
-                    icon: initialChannels.find(ic => ic.id === c.id)?.icon
-                })));
-            } catch (e) {
-                console.error("Failed to parse channels", e);
-            }
+    const refreshNotifications = useCallback(async () => {
+        const session = getAuthSession();
+        sessionRef.current = session;
+        if (!session) { setNotifications([]); return; }
+        try {
+            const { data } = await api.get<Notification[]>('/notifications');
+            setNotifications(Array.isArray(data) ? data : []);
+        } catch {
+            /* keep stale data */
         }
-
-        if (savedChats) {
-            try {
-                setChats(JSON.parse(savedChats));
-            } catch (e) {
-                console.error("Failed to parse chats", e);
-            }
-        }
-        setIsLoaded(true);
     }, []);
 
-    // Save to localStorage
+    // Initial fetch + polling. Re-init when auth changes (login/logout across tabs).
     useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem('notifications_channels_v4', JSON.stringify(channels));
-            localStorage.setItem('notifications_chats_v4', JSON.stringify(chats));
+        refreshNotifications();
+        const interval = setInterval(refreshNotifications, POLL_INTERVAL_MS);
+        const onStorage = (ev: StorageEvent) => {
+            if (ev.key === AUTH_STORAGE_KEY || ev.key === null) refreshNotifications();
+        };
+        window.addEventListener('storage', onStorage);
+        return () => { clearInterval(interval); window.removeEventListener('storage', onStorage); };
+    }, [refreshNotifications]);
+
+    // Chats stub — kept identical to the old localStorage behaviour
+    useEffect(() => {
+        const saved = localStorage.getItem('notifications_chats_v4');
+        if (saved) {
+            try { setChats(JSON.parse(saved)); } catch { /* ignore */ }
         }
-    }, [channels, chats, isLoaded]);
+    }, []);
+    useEffect(() => {
+        localStorage.setItem('notifications_chats_v4', JSON.stringify(chats));
+    }, [chats]);
 
-    const markNotificationAsRead = (id: string) => {
-        setChannels(prev => prev.map(c => c.id === id ? { ...c, unreadCount: 0 } : c));
-    };
+    const markNotificationAsRead = useCallback(async (id: number) => {
+        // Optimistic update
+        setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, readAt: n.readAt ?? new Date().toISOString() } : n));
+        try { await api.patch(`/notifications/${id}/read`); }
+        catch { /* retry on next poll */ }
+    }, []);
 
-    const markChatAsRead = (id: number) => {
-        setChats(prev => prev.map(c => c.id === id ? { ...c, unread: 0 } : c));
-    };
+    const markChatAsRead = useCallback((id: number) => {
+        setChats((prev) => prev.map((c) => c.id === id ? { ...c, unread: 0 } : c));
+    }, []);
 
-    const markAllAsRead = () => {
-        setChannels(prev => prev.map(c => ({ ...c, unreadCount: 0 })));
-        setChats(prev => prev.map(c => ({ ...c, unread: 0 })));
-    };
+    const markAllAsRead = useCallback(async () => {
+        const now = new Date().toISOString();
+        setNotifications((prev) => prev.map((n) => n.readAt ? n : { ...n, readAt: now }));
+        setChats((prev) => prev.map((c) => ({ ...c, unread: 0 })));
+        try { await api.post('/notifications/read-all'); }
+        catch { /* retry on next poll */ }
+    }, []);
 
-    const unreadNotificationsCount = channels.reduce((acc, curr) => acc + curr.unreadCount, 0);
-    const unreadMessagesCount = chats.reduce((acc, curr) => acc + curr.unread, 0);
+    const unreadNotificationsCount = notifications.filter((n) => !n.readAt).length;
+    const unreadMessagesCount = chats.reduce((acc, c) => acc + c.unread, 0);
     const totalUnreadCount = unreadNotificationsCount + unreadMessagesCount;
 
     return (
         <NotificationContext.Provider value={{
-            channels,
+            notifications,
             chats,
             unreadNotificationsCount,
             unreadMessagesCount,
             totalUnreadCount,
             markNotificationAsRead,
             markChatAsRead,
-            markAllAsRead
+            markAllAsRead,
+            refreshNotifications,
         }}>
             {children}
         </NotificationContext.Provider>
@@ -115,9 +123,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 }
 
 export function useNotifications() {
-    const context = useContext(NotificationContext);
-    if (context === undefined) {
-        throw new Error('useNotifications must be used within a NotificationProvider');
-    }
-    return context;
+    const ctx = useContext(NotificationContext);
+    if (!ctx) throw new Error('useNotifications must be used within a NotificationProvider');
+    return ctx;
 }

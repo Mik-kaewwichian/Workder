@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import api from '../../../lib/api';
 import { getAuthSession } from '../../../features/auth/lib/auth';
+import NeedRegistrationModal from '../../../components/NeedRegistrationModal';
+import ApplyModal from '../../../components/ApplyModal';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -42,13 +44,13 @@ type JobDetail = {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const TYPE_MAP: Record<string, string> = {
-    urgent: 'งานด่วน', parttime: 'Part-time', fulltime: 'Full-time', safezone: 'Safezone',
+    urgent: 'งานด่วน', parttime: 'พาร์ทไทม์', fulltime: 'ฟูลไทม์', safezone: 'เซฟโซน',
 };
 const TYPE_COLOR: Record<string, string> = {
     'งานด่วน': 'bg-red-100 text-red-600',
-    'Part-time': 'bg-green-100 text-green-600',
-    'Full-time': 'bg-blue-100 text-blue-600',
-    'Safezone': 'bg-pink-100 text-pink-600',
+    'พาร์ทไทม์': 'bg-green-100 text-green-600',
+    'ฟูลไทม์': 'bg-blue-100 text-blue-600',
+    'เซฟโซน': 'bg-pink-100 text-pink-600',
 };
 
 function StarRow({ rating }: { rating: number }) {
@@ -158,6 +160,8 @@ export default function JobDetailPage() {
     const [applied, setApplied] = useState(false);
     const [applyError, setApplyError] = useState('');
     const [chatting, setChatting] = useState(false);
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [showApplyModal, setShowApplyModal] = useState(false);
 
     const session = typeof window !== 'undefined' ? getAuthSession() : null;
     const isEmployer = session?.role === 'employer';
@@ -168,20 +172,41 @@ export default function JobDetailPage() {
             .then(({ data }) => setJob(data))
             .catch(() => setNotFound(true))
             .finally(() => setLoading(false));
+
+        // Pre-check if this worker already applied — show "สมัครแล้ว" immediately on load
+        if (session && session.role !== 'employer') {
+            api.get(`/applications/worker/${session.userId}`)
+                .then(({ data }) => {
+                    if (Array.isArray(data) && data.some((a: { job?: { id: number } }) => a.job?.id === Number(id))) {
+                        setApplied(true);
+                    }
+                })
+                .catch(() => {/* non-critical */});
+        }
     }, [id]);
 
-    const handleApply = async () => {
+    // Gate: check auth + profile, then open the experience modal
+    const handleApply = () => {
         if (!session) { router.push('/login'); return; }
+        if (!session.profileCompleted) { setShowRegisterModal(true); return; }
+        setApplyError('');
+        setShowApplyModal(true);
+    };
+
+    // Actual submit — called by ApplyModal after experience is filled in
+    const submitApply = async (experience: string) => {
         setApplying(true);
         setApplyError('');
         try {
-            await api.post('/applications', { jobId: Number(id), workerId: Number(session.userId) });
+            await api.post('/applications', { jobId: Number(id), workerId: Number(session!.userId), message: experience });
             setApplied(true);
+            setShowApplyModal(false);
         } catch (err: any) {
             const msg = err?.response?.data?.message;
-            if (msg === 'Already applied to this job') setApplied(true);
-            else if (msg === 'You cannot apply to your own job') setApplyError('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
-            else setApplyError(msg || 'เกิดข้อผิดพลาด');
+            if (msg === 'Already applied to this job') { setApplied(true); setShowApplyModal(false); }
+            else if (msg === 'You cannot apply to your own job') throw new Error('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
+            else if (msg === 'PROFILE_INCOMPLETE') { setShowRegisterModal(true); setShowApplyModal(false); }
+            else throw new Error(msg || 'เกิดข้อผิดพลาด');
         } finally {
             setApplying(false);
         }
@@ -397,6 +422,18 @@ export default function JobDetailPage() {
                         <p className="absolute bottom-full left-4 right-4 mb-1 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-1.5 border border-red-100">{applyError}</p>
                     )}
                 </div>
+            )}
+
+            {showRegisterModal && (
+                <NeedRegistrationModal onClose={() => setShowRegisterModal(false)} />
+            )}
+
+            {showApplyModal && job && (
+                <ApplyModal
+                    job={job}
+                    onClose={() => setShowApplyModal(false)}
+                    onApply={submitApply}
+                />
             )}
         </>
     );

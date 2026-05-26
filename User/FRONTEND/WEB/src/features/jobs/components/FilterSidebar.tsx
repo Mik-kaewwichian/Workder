@@ -26,7 +26,7 @@ export default function FilterSidebar({ selectedTypes, toggleType }: FilterSideb
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">ประเภทงาน</label>
                         <div className="space-y-2">
-                            {['Full-time', 'Contract', 'Part-time', 'Freelance', 'Safezone', 'Premium'].map((type) => (
+                            {['ฟูลไทม์', 'สัญญาจ้าง', 'พาร์ทไทม์', 'ฟรีแลนซ์', 'เซฟโซน', 'พรีเมียม'].map((type) => (
                                 <label key={type} className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"

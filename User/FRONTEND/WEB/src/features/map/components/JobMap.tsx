@@ -42,7 +42,7 @@ const DEMO_POSITIONS: [number, number][] = [
 ];
 
 const TYPE_MAP: Record<string, string> = {
-    urgent: 'งานด่วน', parttime: 'Part-time', fulltime: 'Full-time', safezone: 'Safezone',
+    urgent: 'งานด่วน', parttime: 'พาร์ทไทม์', fulltime: 'ฟูลไทม์', safezone: 'เซฟโซน',
 };
 
 function mapApiJob(raw: any, index: number): Job {
@@ -71,9 +71,9 @@ function mapApiJob(raw: any, index: number): Job {
 
 const DEMO_JOBS: Job[] = [
     { id: 1, title: 'ช่างไฟฟ้า', company: 'บ้านสุขใจ', salary: '500฿/วัน', type: 'งานด่วน', rating: 4.8, distance: '500m', lat: 13.7563, lng: 100.5018, photo: 'https://i.pravatar.cc/100?img=3' },
-    { id: 2, title: 'แม่บ้าน (Part-time)', company: 'คุณอรุณ', salary: '300฿/ครั้ง', type: 'Safezone', rating: 4.5, distance: '1.2km', lat: 13.7580, lng: 100.5080, photo: 'https://i.pravatar.cc/100?img=49' },
+    { id: 2, title: 'แม่บ้าน (พาร์ทไทม์)', company: 'คุณอรุณ', salary: '300฿/ครั้ง', type: 'เซฟโซน', rating: 4.5, distance: '1.2km', lat: 13.7580, lng: 100.5080, photo: 'https://i.pravatar.cc/100?img=49' },
     { id: 3, title: 'ช่างแอร์', company: 'ออฟฟิศสาทร', salary: '800฿/เครื่อง', type: 'Premium', rating: 4.9, distance: '2.5km', lat: 13.7530, lng: 100.4990, photo: 'https://i.pravatar.cc/100?img=60' },
-    { id: 4, title: 'ช่างประปา', company: 'นิคมอุตสาหกรรม', salary: '600฿/วัน', type: 'Full-time', rating: 4.2, distance: '800m', lat: 13.7545, lng: 100.5060, photo: 'https://i.pravatar.cc/100?img=12' },
+    { id: 4, title: 'ช่างประปา', company: 'นิคมอุตสาหกรรม', salary: '600฿/วัน', type: 'ฟูลไทม์', rating: 4.2, distance: '800m', lat: 13.7545, lng: 100.5060, photo: 'https://i.pravatar.cc/100?img=12' },
 ];
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -101,7 +101,7 @@ export default function JobMap() {
         api.get('/jobs')
             .then(({ data }) => {
                 if (Array.isArray(data) && data.length > 0) {
-                    setAllJobs(data.map(mapApiJob));
+                    setAllJobs(data.filter((j: any) => j.status !== 'completed').map(mapApiJob));
                 }
             })
             .catch(() => {
@@ -171,10 +171,10 @@ export default function JobMap() {
 
     const typeColor: Record<string, string> = {
         'งานด่วน': 'bg-red-100 text-red-600',
-        'Safezone': 'bg-pink-100 text-pink-600',
+        'เซฟโซน': 'bg-pink-100 text-pink-600',
         'Premium': 'bg-amber-100 text-amber-600',
-        'Full-time': 'bg-blue-100 text-blue-600',
-        'Part-time': 'bg-green-100 text-green-600',
+        'ฟูลไทม์': 'bg-blue-100 text-blue-600',
+        'พาร์ทไทม์': 'bg-green-100 text-green-600',
     };
 
     return (

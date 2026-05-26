@@ -3,10 +3,18 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/Navbar';
 import Link from 'next/link';
-import { ArrowLeft, Briefcase, Clock, CheckCircle2, XCircle, Loader2, Star } from 'lucide-react';
+import {
+    ArrowLeft, Briefcase, Clock, CheckCircle2, XCircle,
+    Loader2, Star, PackageCheck, AlertTriangle,
+} from 'lucide-react';
 import api from '../../lib/api';
 import { getAuthSession } from '../../features/auth/lib/auth';
 import ReviewModal from '../../features/reviews/components/ReviewModal';
+import {
+    listEscrows, markWorkDone,
+    type Escrow,
+} from '../../features/payments/lib/escrow-api';
+import { formatThb } from '../../features/payments/lib/wallet-api';
 
 type MyApplication = {
     id: number;
@@ -31,23 +39,135 @@ const STATUS_LABEL: Record<string, string> = {
     pending: 'รอการพิจารณา', accepted: 'รับแล้ว', rejected: 'ปฏิเสธแล้ว',
 };
 const TYPE_MAP: Record<string, string> = {
-    urgent: 'งานด่วน', parttime: 'Part-time', fulltime: 'Full-time', safezone: 'Safezone',
+    urgent: 'งานด่วน', parttime: 'พาร์ทไทม์', fulltime: 'ฟูลไทม์', safezone: 'เซฟโซน',
 };
+
+// ── Escrow inline panel (Worker side) ──────────────────────────────────────
+
+function EscrowPanel({ escrow, onChanged }: { escrow: Escrow; onChanged: () => void }) {
+    const [busy, setBusy] = useState(false);
+    const net = escrow.amount - escrow.feeAmount;
+
+    const run = async (fn: () => Promise<unknown>) => {
+        setBusy(true);
+        try {
+            await fn();
+            onChanged();
+        } catch (e: unknown) {
+            const msg =
+                (e as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+                'ดำเนินการไม่สำเร็จ';
+            window.alert(msg);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    if (escrow.status === 'HELD') {
+        return (
+            <div className="mt-3 pt-3 border-t border-blue-100 bg-blue-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-xl">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                            <Clock size={10} /> กำลังทำงาน — เงินถูกกันไว้ {formatThb(escrow.amount)}
+                        </span>
+                    </div>
+                    <button
+                        disabled={busy}
+                        onClick={() => run(() => markWorkDone(escrow.id))}
+                        className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    >
+                        <PackageCheck size={15} /> ทำงานเสร็จแล้ว
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (escrow.status === 'PENDING_CONFIRMATION') {
+        return (
+            <div className="mt-3 pt-3 border-t border-amber-100 bg-amber-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-xl">
+                <p className="text-xs font-semibold text-amber-700 flex items-center gap-1 mb-1">
+                    <Clock size={11} /> รอผู้ว่าจ้างยืนยัน — คุณจะได้รับ {formatThb(net)}
+                </p>
+                {escrow.autoReleaseAt && (
+                    <p className="text-[11px] text-amber-500">
+                        ปล่อยเงินอัตโนมัติ {new Date(escrow.autoReleaseAt).toLocaleString('th-TH')}
+                    </p>
+                )}
+            </div>
+        );
+    }
+
+    if (escrow.status === 'RELEASED') {
+        return (
+            <div className="mt-3 pt-3 border-t border-emerald-100 bg-emerald-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-xl">
+                <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                    <CheckCircle2 size={13} /> ได้รับเงินแล้ว {formatThb(net)}
+                    <span className="text-[10px] font-normal text-emerald-500 ml-1">
+                        (หักค่าธรรมเนียม {formatThb(escrow.feeAmount)})
+                    </span>
+                </p>
+            </div>
+        );
+    }
+
+    if (escrow.status === 'REFUNDED') {
+        return (
+            <div className="mt-3 pt-3 border-t border-slate-100 bg-slate-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-xl">
+                <p className="text-xs text-slate-500 flex items-center gap-1">
+                    <XCircle size={12} /> งานถูกยกเลิก — เงินคืนแก่ผู้ว่าจ้างแล้ว
+                </p>
+            </div>
+        );
+    }
+
+    if (escrow.status === 'DISPUTED') {
+        return (
+            <div className="mt-3 pt-3 border-t border-rose-100 bg-rose-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-xl">
+                <p className="text-xs font-semibold text-rose-600 flex items-center gap-1">
+                    <AlertTriangle size={12} /> มีข้อพิพาท — อยู่ระหว่างการตรวจสอบโดยทีมงาน
+                </p>
+                {escrow.disputeReason && (
+                    <p className="text-[11px] text-rose-400 mt-0.5">"{escrow.disputeReason}"</p>
+                )}
+            </div>
+        );
+    }
+
+    return null;
+}
+
+// ── Page ────────────────────────────────────────────────────────────────────
 
 export default function MyApplicationsPage() {
     const [applications, setApplications] = useState<MyApplication[]>([]);
+    const [escrowMap, setEscrowMap] = useState<Map<number, Escrow>>(new Map());
     const [loading, setLoading] = useState(true);
     const [reviewJobId, setReviewJobId] = useState<number | null>(null);
     const [reviewedJobIds, setReviewedJobIds] = useState<Set<number>>(new Set());
 
-    useEffect(() => {
+    const loadAll = async () => {
         const session = getAuthSession();
-        if (!session) return;
-        api.get(`/applications/worker/${session.userId}`)
-            .then(({ data }) => setApplications(Array.isArray(data) ? data : []))
-            .catch(() => setApplications([]))
-            .finally(() => setLoading(false));
-    }, []);
+        if (!session) { setLoading(false); return; }
+        try {
+            const [appsRes, escrows] = await Promise.all([
+                api.get(`/applications/worker/${session.userId}`),
+                listEscrows(),
+            ]);
+            setApplications(Array.isArray(appsRes.data) ? appsRes.data : []);
+            // Index by applicationId for O(1) lookup
+            const map = new Map<number, Escrow>();
+            for (const e of escrows) map.set(e.applicationId, e);
+            setEscrowMap(map);
+        } catch {
+            setApplications([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => { loadAll(); }, []);
 
     const formatDate = (iso: string) =>
         new Date(iso).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -89,11 +209,12 @@ export default function MyApplicationsPage() {
                                 const employer = app.job.postedBy
                                     ? [app.job.postedBy.firstName, app.job.postedBy.lastName].filter(Boolean).join(' ') || 'นายจ้าง'
                                     : 'นายจ้าง';
+                                const escrow = escrowMap.get(app.id);
                                 const canReview = app.status === 'accepted';
                                 const reviewed = reviewedJobIds.has(app.job.id);
 
                                 return (
-                                    <div key={app.id} className="bg-white rounded-xl border border-slate-200 p-4">
+                                    <div key={app.id} className="bg-white rounded-xl border border-slate-200 p-4 overflow-hidden">
                                         <div className="flex items-start gap-3">
                                             <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
                                                 <Briefcase size={18} />
@@ -116,29 +237,52 @@ export default function MyApplicationsPage() {
                                             </div>
                                         </div>
 
-                                        {/* Status icon row */}
-                                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                                            <div className="flex items-center gap-2 text-xs">
-                                                {app.status === 'accepted' && <CheckCircle2 size={14} className="text-green-500" />}
-                                                {app.status === 'rejected' && <XCircle size={14} className="text-red-400" />}
-                                                {app.status === 'pending' && <Clock size={14} className="text-amber-500" />}
-                                                <span className="text-slate-500">{STATUS_LABEL[app.status] ?? app.status}</span>
+                                        {/* Review row — only when no escrow panel occupies the bottom */}
+                                        {!escrow && (
+                                            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                                <div className="flex items-center gap-2 text-xs">
+                                                    {app.status === 'accepted' && <CheckCircle2 size={14} className="text-green-500" />}
+                                                    {app.status === 'rejected' && <XCircle size={14} className="text-red-400" />}
+                                                    {app.status === 'pending' && <Clock size={14} className="text-amber-500" />}
+                                                    <span className="text-slate-500">{STATUS_LABEL[app.status] ?? app.status}</span>
+                                                </div>
+                                                {canReview && !reviewed && (
+                                                    <button
+                                                        onClick={() => setReviewJobId(app.job.id)}
+                                                        className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors"
+                                                    >
+                                                        <Star size={12} fill="currentColor" /> รีวิวงาน
+                                                    </button>
+                                                )}
+                                                {reviewed && (
+                                                    <span className="flex items-center gap-1 text-xs text-slate-400">
+                                                        <CheckCircle2 size={12} /> รีวิวแล้ว
+                                                    </span>
+                                                )}
                                             </div>
+                                        )}
 
-                                            {canReview && !reviewed && (
+                                        {/* Escrow lifecycle panel */}
+                                        {escrow && <EscrowPanel escrow={escrow} onChanged={loadAll} />}
+
+                                        {/* Review button below escrow panel when released */}
+                                        {escrow?.status === 'RELEASED' && canReview && !reviewed && (
+                                            <div className="px-4 pb-3 bg-emerald-50 -mx-4 -mb-0 flex justify-end">
                                                 <button
                                                     onClick={() => setReviewJobId(app.job.id)}
                                                     className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors"
                                                 >
                                                     <Star size={12} fill="currentColor" /> รีวิวงาน
                                                 </button>
-                                            )}
-                                            {reviewed && (
+                                            </div>
+                                        )}
+                                        {escrow?.status === 'RELEASED' && reviewed && (
+                                            <div className="px-4 pb-3 bg-emerald-50 -mx-4 flex justify-end">
                                                 <span className="flex items-center gap-1 text-xs text-slate-400">
                                                     <CheckCircle2 size={12} /> รีวิวแล้ว
                                                 </span>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}

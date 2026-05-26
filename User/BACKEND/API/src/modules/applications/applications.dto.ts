@@ -6,9 +6,11 @@ export class CreateApplicationDto {
     @IsInt()
     jobId!: number;
 
+    /** Populated from the JWT by the controller — not trusted from the request body. */
     @Type(() => Number)
     @IsInt()
-    workerId!: number;
+    @IsOptional()
+    workerId?: number;
 
     @IsString()
     @IsOptional()

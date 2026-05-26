@@ -57,9 +57,17 @@ let JobsService = class JobsService {
         });
     }
     async deleteJob(where) {
-        return this.prisma.job.delete({
-            where,
+        // Block deletion if there is an active escrow (money is being held)
+        const activeEscrow = await this.prisma.escrow.findFirst({
+            where: {
+                jobId: where.id,
+                status: { in: ['HELD', 'PENDING_CONFIRMATION'] },
+            },
         });
+        if (activeEscrow) {
+            throw new common_1.BadRequestException('ไม่สามารถลบงานที่มีงานกำลังดำเนินการอยู่ได้ กรุณารอให้งานเสร็จสิ้นและยืนยันการจ่ายก่อน');
+        }
+        return this.prisma.job.delete({ where });
     }
 };
 exports.JobsService = JobsService;

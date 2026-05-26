@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 class CreateApplicationDto {
     jobId;
+    /** Populated from the JWT by the controller — not trusted from the request body. */
     workerId;
     message;
 }
@@ -26,6 +27,7 @@ __decorate([
 __decorate([
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], CreateApplicationDto.prototype, "workerId", void 0);
 __decorate([

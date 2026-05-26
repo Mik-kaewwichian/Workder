@@ -16,14 +16,20 @@ exports.ApplicationsController = void 0;
 const common_1 = require("@nestjs/common");
 const applications_service_1 = require("./applications.service");
 const applications_dto_1 = require("./applications.dto");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const current_user_decorator_1 = require("../../common/decorators/current-user.decorator");
 let ApplicationsController = class ApplicationsController {
     applicationsService;
     constructor(applicationsService) {
         this.applicationsService = applicationsService;
     }
-    // Worker applies to a job
-    apply(dto) {
-        return this.applicationsService.apply(dto);
+    /**
+     * Worker applies to a job.
+     * workerId is taken from the JWT — the body value is ignored so a logged-in
+     * user can never submit on behalf of another worker.
+     */
+    apply(workerId, dto) {
+        return this.applicationsService.apply(dto, workerId);
     }
     // Employer sees all applicants for their job
     byJob(jobId) {
@@ -44,10 +50,12 @@ let ApplicationsController = class ApplicationsController {
 };
 exports.ApplicationsController = ApplicationsController;
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, current_user_decorator_1.CurrentUserId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [applications_dto_1.CreateApplicationDto]),
+    __metadata("design:paramtypes", [Number, applications_dto_1.CreateApplicationDto]),
     __metadata("design:returntype", void 0)
 ], ApplicationsController.prototype, "apply", null);
 __decorate([

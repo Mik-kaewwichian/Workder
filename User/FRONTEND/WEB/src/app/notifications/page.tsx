@@ -5,11 +5,9 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import {
-    Bell,
-    MessageSquare,
-    ChevronRight
+    Bell, MessageSquare, ChevronRight, Briefcase, CheckCircle2, XCircle,
 } from 'lucide-react';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications, type Notification } from '../../contexts/NotificationContext';
 
 export default function NotificationsPage() {
     return (
@@ -19,19 +17,81 @@ export default function NotificationsPage() {
     );
 }
 
+// Icon + colour per notification type
+function notificationVisual(type: string) {
+    switch (type) {
+        case 'application_received':
+            return { icon: <Briefcase className="h-5 w-5 text-white" />, color: 'bg-blue-500' };
+        case 'application_accepted':
+            return { icon: <CheckCircle2 className="h-5 w-5 text-white" />, color: 'bg-green-500' };
+        case 'application_rejected':
+            return { icon: <XCircle className="h-5 w-5 text-white" />, color: 'bg-rose-500' };
+        default:
+            return { icon: <Bell className="h-5 w-5 text-white" />, color: 'bg-slate-500' };
+    }
+}
+
+function formatTime(iso: string) {
+    const d = new Date(iso);
+    const now = Date.now();
+    const diffMin = Math.floor((now - d.getTime()) / 60_000);
+    if (diffMin < 1) return 'เมื่อสักครู่';
+    if (diffMin < 60) return `${diffMin} นาทีที่แล้ว`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `${diffH} ชั่วโมงที่แล้ว`;
+    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+}
+
+function NotificationRow({ n, onRead }: { n: Notification; onRead: (id: number) => void }) {
+    const { icon, color } = notificationVisual(n.type);
+    const isUnread = !n.readAt;
+    const Inner = (
+        <div className={`p-4 sm:p-5 flex items-start gap-4 transition-colors ${isUnread ? 'bg-blue-50/40' : 'hover:bg-slate-50'}`}>
+            <div className={`flex-shrink-0 w-12 h-12 rounded-full ${color} flex items-center justify-center shadow-sm relative`}>
+                {icon}
+                {isUnread && (
+                    <span className="absolute -top-0.5 -right-0.5 h-3 w-3 bg-red-500 rounded-full border-2 border-white" />
+                )}
+            </div>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <h3 className={`text-base truncate ${isUnread ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>
+                        {n.title}
+                    </h3>
+                    <span className="text-xs text-slate-500 flex-shrink-0">{formatTime(n.createdAt)}</span>
+                </div>
+                <p className={`text-sm line-clamp-2 ${isUnread ? 'text-slate-800' : 'text-slate-500'}`}>{n.body}</p>
+            </div>
+            {n.link && <ChevronRight className="h-4 w-4 text-slate-300 self-center flex-shrink-0" />}
+        </div>
+    );
+    if (n.link) {
+        return (
+            <Link href={n.link} onClick={() => onRead(n.id)} className="block">
+                {Inner}
+            </Link>
+        );
+    }
+    return (
+        <button type="button" onClick={() => onRead(n.id)} className="block w-full text-left">
+            {Inner}
+        </button>
+    );
+}
+
 function NotificationsPageContent() {
     const searchParams = useSearchParams();
     const tab = searchParams.get('tab');
     const [activeTab, setActiveTab] = React.useState<'messages' | 'notifications'>((tab as 'messages' | 'notifications') || 'notifications');
 
     const {
-        channels,
+        notifications,
         chats,
         markNotificationAsRead,
         markChatAsRead,
         markAllAsRead,
         unreadNotificationsCount,
-        unreadMessagesCount
+        unreadMessagesCount,
     } = useNotifications();
 
     return (
@@ -87,53 +147,18 @@ function NotificationsPageContent() {
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                         {activeTab === 'notifications' ? (
                             <div className="divide-y divide-slate-100">
-                                {channels.map((channel) => (
-                                    <Link
-                                        key={channel.id}
-                                        href={`/notifications/${channel.id}`}
-                                        onClick={() => markNotificationAsRead(channel.id)}
-                                        className={`block transition-colors ${channel.unreadCount > 0 ? 'bg-blue-50/30' : 'hover:bg-slate-50'}`}
-                                    >
-                                        <div className="p-4 sm:p-5 flex items-start gap-4">
-                                            <div className={`flex-shrink-0 w-12 h-12 rounded-full ${channel.color} flex items-center justify-center shadow-sm relative`}>
-                                                {channel.icon}
-                                                {channel.unreadCount > 0 && (
-                                                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white">
-                                                        {channel.unreadCount}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <h3 className={`text-base truncate pr-2 ${channel.unreadCount > 0 ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>
-                                                        {channel.name}
-                                                    </h3>
-                                                    <span className="text-xs text-slate-500 flex-shrink-0">
-                                                        {channel.timestamp}
-                                                    </span>
-                                                </div>
-
-                                                <p className={`text-sm mb-1 truncate ${channel.unreadCount > 0 ? 'text-slate-900 font-medium' : 'text-slate-500'}`}>
-                                                    {channel.lastMessage}
-                                                </p>
-                                            </div>
-
-                                            <div className="flex flex-col items-end gap-2 self-center">
-                                                <ChevronRight className="h-4 w-4 text-slate-300" />
-                                            </div>
-                                        </div>
-                                    </Link>
+                                {notifications.map((n) => (
+                                    <NotificationRow key={n.id} n={n} onRead={markNotificationAsRead} />
                                 ))}
-                                {channels.length === 0 && (
+                                {notifications.length === 0 && (
                                     <div className="p-8 text-center text-slate-400 text-sm">
                                         <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                        ยังไม่มีการแจ้งเตือนเพิ่มเติม
+                                        ยังไม่มีการแจ้งเตือน
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            /* Messages / Chats Tab Content */
+                            /* Messages / Chats Tab Content — stub data */
                             <div className="divide-y divide-slate-100">
                                 {chats.map((chat) => (
                                     <Link
@@ -171,7 +196,7 @@ function NotificationsPageContent() {
                                 {chats.length === 0 && (
                                     <div className="p-8 text-center text-slate-400 text-sm">
                                         <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                        ยังไม่มีข้อความเพิ่มเติม
+                                        ยังไม่มีข้อความ
                                     </div>
                                 )}
                             </div>

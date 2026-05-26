@@ -24,21 +24,21 @@ export default function JobCard({ job, onApply }: JobCardProps) {
             case 'งานด่วน': return 'bg-red-100 text-red-600 border-red-200';
             case 'พาร์ทไทม์': return 'bg-green-100 text-green-600 border-green-200';
             case 'งานประจำ': return 'bg-purple-100 text-purple-600 border-purple-200';
-            case 'Safezone': return 'bg-pink-50 text-pink-600 border-pink-200 ring-1 ring-pink-300 shadow-sm shadow-pink-100';
-            case 'Premium': return 'bg-gradient-to-r from-amber-200 to-yellow-400 text-slate-900 border-yellow-500 shadow-lg shadow-yellow-500/20 font-bold';
+            case 'เซฟโซน': return 'bg-pink-50 text-pink-600 border-pink-200 ring-1 ring-pink-300 shadow-sm shadow-pink-100';
+            case 'พรีเมียม': return 'bg-gradient-to-r from-amber-200 to-yellow-400 text-slate-900 border-yellow-500 shadow-lg shadow-yellow-500/20 font-bold';
             default: return 'bg-blue-50 text-blue-600 border-blue-100';
         }
     };
 
     const getJobIcon = (tag: string) => {
         if (tag === 'Premium') return <Gem className="h-5 w-5 animate-pulse text-yellow-600" />;
-        if (tag === 'Safezone') return <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />;
+        if (tag === 'เซฟโซน') return <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />;
         return <Briefcase className="h-4 w-4 text-slate-400" />;
     };
 
     return (
-        <div className={`group rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition-all cursor-pointer ${job.type === 'Safezone' ? 'border-pink-200 hover:border-pink-300' :
-            job.type === 'Premium' ? 'border-yellow-200 hover:border-yellow-300 bg-gradient-to-r from-yellow-50/30 to-white' :
+        <div className={`group rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition-all cursor-pointer ${job.type === 'เซฟโซน' ? 'border-pink-200 hover:border-pink-300' :
+            job.type === 'พรีเมียม' ? 'border-yellow-200 hover:border-yellow-300 bg-gradient-to-r from-yellow-50/30 to-white' :
                 'border-slate-100 hover:border-blue-200'
             }`}>
             <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">

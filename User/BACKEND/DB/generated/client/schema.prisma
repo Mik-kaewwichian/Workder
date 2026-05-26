@@ -57,6 +57,33 @@ model User {
 
   userReviewsWritten  UserReview[] @relation("UserReviewsWritten")
   userReviewsReceived UserReview[] @relation("UserReviewsReceived")
+
+  wallet            Wallet?
+  bankAccounts      BankAccount[]
+  topUps            TopUp[]
+  withdrawals       Withdrawal[]
+  escrowsAsEmployer Escrow[]      @relation("EscrowEmployer")
+  escrowsAsWorker   Escrow[]      @relation("EscrowWorker")
+
+  notifications Notification[]
+}
+
+model Notification {
+  id        Int       @id @default(autoincrement())
+  userId    Int // recipient
+  type      String // 'application_received' | 'application_accepted' | 'application_rejected'
+  title     String
+  body      String
+  link      String? // optional in-app navigation URL
+  refType   String? // 'application' | 'job' | etc.
+  refId     Int?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
 }
 
 model UserReview {
@@ -95,6 +122,7 @@ model Job {
   applications  Application[]
   reviews       Review[]
   conversations Conversation[]
+  escrows       Escrow[]
 }
 
 model Application {
@@ -106,8 +134,9 @@ model Application {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  job    Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  worker User @relation("WorkerApplications", fields: [workerId], references: [id])
+  job    Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  worker User    @relation("WorkerApplications", fields: [workerId], references: [id])
+  escrow Escrow?
 
   @@unique([jobId, workerId])
 }
@@ -167,4 +196,105 @@ model Message {
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation("MessagesSent", fields: [senderId], references: [id])
+}
+
+// ── Wallet ──────────────────────────────────────────────────────────────────
+// All money amounts are integer satang (1 THB = 100 satang) to avoid float
+// rounding. Enums are String constants (SQLite has no enum support).
+
+model Wallet {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  balance   Int      @default(0) // available balance, satang
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id           Int      @id @default(autoincrement())
+  walletId     Int
+  type         String // TOPUP | ESCROW_HOLD | ESCROW_RELEASE | ESCROW_REFUND | PAYOUT | FEE | ADJUSTMENT
+  amount       Int // signed, satang (credit > 0, debit < 0)
+  balanceAfter Int // wallet balance after this entry, satang
+  refType      String? // topup | escrow | withdrawal | adjustment
+  refId        Int?
+  description  String?
+  createdAt    DateTime @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+}
+
+model Escrow {
+  id            Int       @id @default(autoincrement())
+  jobId         Int
+  applicationId Int       @unique
+  employerId    Int
+  workerId      Int
+  amount        Int // total held, satang
+  feeAmount     Int       @default(0) // platform fee, satang (deducted from worker payout)
+  status        String    @default("HELD") // HELD | PENDING_CONFIRMATION | RELEASED | REFUNDED | DISPUTED
+  createdAt     DateTime  @default(now())
+  releasedAt    DateTime?
+
+  // Completion lifecycle
+  workerMarkedDoneAt DateTime? // worker pressed "work done" — starts the timer
+  autoReleaseAt      DateTime? // workerMarkedDoneAt + ESCROW_AUTO_RELEASE_DAYS
+  disputedAt         DateTime?
+  disputeReason      String?
+
+  job         Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  employer    User        @relation("EscrowEmployer", fields: [employerId], references: [id])
+  worker      User        @relation("EscrowWorker", fields: [workerId], references: [id])
+}
+
+model TopUp {
+  id               Int       @id @default(autoincrement())
+  userId           Int
+  amount           Int // satang
+  provider         String    @default("omise")
+  providerChargeId String?   @unique
+  qrPayload        String? // PromptPay QR payload / image URL
+  status           String    @default("PENDING") // PENDING | PAID | EXPIRED | FAILED
+  createdAt        DateTime  @default(now())
+  paidAt           DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BankAccount {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  bankCode      String
+  bankName      String
+  accountNumber String
+  accountName   String
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawals Withdrawal[]
+}
+
+model Withdrawal {
+  id                 Int       @id @default(autoincrement())
+  userId             Int
+  bankAccountId      Int?
+  amount             Int // satang
+  feeAmount          Int       @default(0) // satang
+  bankName           String // snapshot at request time
+  accountNumber      String // snapshot at request time
+  accountName        String // snapshot at request time
+  status             String    @default("REQUESTED") // REQUESTED | APPROVED | PAID | REJECTED
+  providerTransferId String?
+  createdAt          DateTime  @default(now())
+  processedAt        DateTime?
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankAccount BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
 }

@@ -3,7 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Home as HomeIcon, Briefcase, ShieldCheck, Map as MapIcon, Crown, Info, ArrowRight, UserRound, Bell, Wallet, CircleHelp, Settings, ChevronDown, LogOut, X, LayoutDashboard, Users, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { Home as HomeIcon, Briefcase, ShieldCheck, Map as MapIcon, Crown, Info, ArrowRight, UserRound, Bell, Wallet, CircleHelp, Settings, ChevronDown, LogOut, X, LayoutDashboard, Users, MessageSquare, CheckCircle2, ClipboardList } from 'lucide-react';
+import MyJobsPanel from './MyJobsPanel';
 
 import { usePathname, useRouter } from 'next/navigation';
 import { clearAuthSession, getAuthSession, setAuthSession, AUTH_STORAGE_KEY, type AuthSession } from '../features/auth/lib/auth';
@@ -18,6 +19,11 @@ export default function Navbar() {
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+    const [myJobsOpen, setMyJobsOpen] = useState(false);
+    const [myJobsMounted, setMyJobsMounted] = useState(false);
+    const [urgentCount, setUrgentCount] = useState(0);
+
+    const openMyJobs = () => { setMyJobsMounted(true); setMyJobsOpen(true); };
     const accountMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -75,7 +81,7 @@ export default function Navbar() {
         { label: 'งานของฉัน', icon: <Briefcase className="h-4 w-4" />, onClick: () => handleProtectedMenuClick('/dashboard'), comingSoon: false },
         { label: 'การสมัครงานของฉัน', icon: <CheckCircle2 className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/my-applications'); }, comingSoon: false },
         { label: 'About', icon: <Info className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/about'); }, comingSoon: false },
-        { label: 'MyWallet', icon: <Wallet className="h-4 w-4" />, onClick: () => handleProtectedMenuClick('/dashboard'), comingSoon: false },
+        { label: 'MyWallet', icon: <Wallet className="h-4 w-4" />, onClick: () => handleProtectedMenuClick('/wallet'), comingSoon: false },
         { label: 'Help', icon: <CircleHelp className="h-4 w-4" />, onClick: () => setIsAccountMenuOpen(false), comingSoon: true },
         { label: 'Setting', icon: <Settings className="h-4 w-4" />, onClick: () => setIsAccountMenuOpen(false), comingSoon: true },
         { label: 'เปลี่ยนบทบาท', icon: <Users className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); setIsRoleModalOpen(true); }, comingSoon: false },
@@ -119,7 +125,7 @@ export default function Navbar() {
     const employerMenuItems = [
         { label: 'โปรไฟล์', icon: <UserRound className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/profile'); }, comingSoon: false },
         { label: 'การแจ้งเตือน', icon: <Bell className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/notifications'); }, comingSoon: false },
-        { label: 'My Wallet', icon: <Wallet className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/employer/wallet'); }, comingSoon: false },
+        { label: 'My Wallet', icon: <Wallet className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/wallet'); }, comingSoon: false },
         { label: 'จัดการงาน', icon: <Briefcase className="h-4 w-4" />, onClick: () => router.push('/employer/jobs'), comingSoon: false },
         { label: 'ผู้สมัครงาน', icon: <Users className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/employer/candidates'); }, comingSoon: false },
         { label: 'About', icon: <Info className="h-4 w-4" />, onClick: () => { setIsAccountMenuOpen(false); router.push('/about'); }, comingSoon: false },
@@ -296,6 +302,44 @@ export default function Navbar() {
                     </div>
                 ) : null
             }
+
+            {/* ── งานของฉัน global trigger ──────────────────────────────── */}
+            {session && (
+                <button
+                    onClick={openMyJobs}
+                    className="fixed right-0 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-2 py-4 rounded-l-xl shadow-xl transition-colors"
+                >
+                    <ClipboardList size={16} />
+                    {urgentCount > 0 && (
+                        <span className="h-4 min-w-4 px-1 rounded-full bg-amber-400 text-[9px] font-bold text-white flex items-center justify-center">
+                            {urgentCount}
+                        </span>
+                    )}
+                    <span
+                        className="text-[10px] font-bold"
+                        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                    >
+                        งานของฉัน
+                    </span>
+                </button>
+            )}
+
+            {/* ── Backdrop ──────────────────────────────────────────────── */}
+            <div
+                className={`fixed inset-0 bg-black/40 z-40 backdrop-blur-sm transition-opacity duration-300 ${myJobsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                onClick={() => setMyJobsOpen(false)}
+            />
+
+            {/* ── งานของฉัน Drawer ──────────────────────────────────────── */}
+            {myJobsMounted && session && (
+                <div className={`fixed top-0 right-0 h-full w-80 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${myJobsOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                    <MyJobsPanel
+                        session={session}
+                        onClose={() => setMyJobsOpen(false)}
+                        onUrgentCount={setUrgentCount}
+                    />
+                </div>
+            )}
 
             {
                 isRoleModalOpen ? (

@@ -11,15 +11,15 @@ import JobCard from './JobCard';
 export default function JobsListContainer() {
     const router = useRouter();
     const jobs = [
-        { title: "Senior React Developer", company: "TechFlow Inc.", location: "Bangkok (Hybrid)", salary: "80k - 120k", type: "Full-time", posted: "2d ago", tags: ["React", "Next.js", "TypeScript"] },
-        { title: "Personal Driver (VIP)", company: "Private Owner", location: "Bangkok", salary: "35k - 50k", type: "Safezone", posted: "1d ago", tags: ["Driving License", "English", "Service Mind"] },
-        { title: "Full Stack Developer (Lead)", company: "Global Corp", location: "Remote", salary: "150k+", type: "Premium", posted: "3h ago", tags: ["Node.js", "React", "AWS"] },
-        { title: "UX/UI Designer", company: "Creative Studio", location: "Remote", salary: "45k - 60k", type: "Contract", posted: "1d ago", tags: ["Figma", "UI Design", "User Research"] },
-        { title: "Backend Engineer (Go)", company: "FinTech Sol", location: "Bangkok", salary: "90k - 150k", type: "Full-time", posted: "3d ago", tags: ["Go", "PostgreSQL", "Docker"] },
-        { title: "Elderly Care Assistant", company: "Home Care", location: "Nonthaburi", salary: "40k - 60k", type: "Safezone", posted: "5h ago", tags: ["Nursing", "Patience", "Care"] },
-        { title: "Digital Marketing Specialist", company: "GrowFast Agency", location: "Chiang Mai", salary: "35k - 50k", type: "Full-time", posted: "5h ago", tags: ["SEO", "Ads", "Content"] },
-        { title: "Project Manager", company: "SoftDev Team", location: "Bangkok", salary: "60k - 90k", type: "Full-time", posted: "1w ago", tags: ["Agile", "Scrum", "Leadership"] },
-        { title: "Freelance Graphic Designer", company: "StartUp Hub", location: "Remote", salary: "20k - 30k", type: "Part-time", posted: "2d ago", tags: ["Photoshop", "Illustrator", "Branding"] },
+        { title: "Senior React Developer", company: "TechFlow Inc.", location: "Bangkok (Hybrid)", salary: "80k - 120k", type: "ฟูลไทม์", posted: "2d ago", tags: ["React", "Next.js", "TypeScript"] },
+        { title: "Personal Driver (VIP)", company: "Private Owner", location: "Bangkok", salary: "35k - 50k", type: "เซฟโซน", posted: "1d ago", tags: ["Driving License", "English", "Service Mind"] },
+        { title: "Full Stack Developer (Lead)", company: "Global Corp", location: "Remote", salary: "150k+", type: "พรีเมียม", posted: "3h ago", tags: ["Node.js", "React", "AWS"] },
+        { title: "UX/UI Designer", company: "Creative Studio", location: "Remote", salary: "45k - 60k", type: "สัญญาจ้าง", posted: "1d ago", tags: ["Figma", "UI Design", "User Research"] },
+        { title: "Backend Engineer (Go)", company: "FinTech Sol", location: "Bangkok", salary: "90k - 150k", type: "ฟูลไทม์", posted: "3d ago", tags: ["Go", "PostgreSQL", "Docker"] },
+        { title: "Elderly Care Assistant", company: "Home Care", location: "Nonthaburi", salary: "40k - 60k", type: "เซฟโซน", posted: "5h ago", tags: ["Nursing", "Patience", "Care"] },
+        { title: "Digital Marketing Specialist", company: "GrowFast Agency", location: "Chiang Mai", salary: "35k - 50k", type: "ฟูลไทม์", posted: "5h ago", tags: ["SEO", "Ads", "Content"] },
+        { title: "Project Manager", company: "SoftDev Team", location: "Bangkok", salary: "60k - 90k", type: "ฟูลไทม์", posted: "1w ago", tags: ["Agile", "Scrum", "Leadership"] },
+        { title: "Freelance Graphic Designer", company: "StartUp Hub", location: "Remote", salary: "20k - 30k", type: "พาร์ทไทม์", posted: "2d ago", tags: ["Photoshop", "Illustrator", "Branding"] },
     ];
 
     const [session, setSession] = useState<AuthSession | null>(null);

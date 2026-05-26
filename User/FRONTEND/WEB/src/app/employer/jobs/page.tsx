@@ -5,7 +5,7 @@ import Navbar from '../../../components/Navbar';
 import Link from 'next/link';
 import {
     Briefcase, Clock, CheckCircle, XCircle, Plus, Loader2,
-    Users, Eye, MapPin, MoreVertical,
+    Users, Eye, MapPin, Trash2, AlertTriangle,
 } from 'lucide-react';
 import api from '../../../lib/api';
 import { getAuthSession } from '../../../features/auth/lib/auth';
@@ -24,16 +24,18 @@ type Job = {
 };
 
 const TYPE_MAP: Record<string, string> = {
-    urgent: 'งานด่วน', parttime: 'Part-time', fulltime: 'Full-time', safezone: 'Safezone',
+    urgent: 'งานด่วน', parttime: 'พาร์ทไทม์', fulltime: 'ฟูลไทม์', safezone: 'เซฟโซน',
 };
 
-const STATUS_TABS = ['ทั้งหมด', 'เปิดรับ', 'ปิดรับ'];
+const STATUS_TABS = ['ทั้งหมด', 'เปิดรับ', 'ปิดรับ', 'เสร็จแล้ว'];
 
 export default function MyJobsPage() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('ทั้งหมด');
     const [togglingId, setTogglingId] = useState<number | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     useEffect(() => {
         const session = getAuthSession();
@@ -43,6 +45,20 @@ export default function MyJobsPage() {
             .catch(() => setJobs([]))
             .finally(() => setLoading(false));
     }, []);
+
+    const handleDelete = async (id: number) => {
+        setDeletingId(id);
+        try {
+            await api.delete(`/jobs/${id}`);
+            setJobs((prev) => prev.filter((j) => j.id !== id));
+            setConfirmDeleteId(null);
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || 'เกิดข้อผิดพลาดในการลบ';
+            alert(msg);
+        } finally {
+            setDeletingId(null);
+        }
+    };
 
     const toggleStatus = async (job: Job) => {
         const next = job.status === 'open' ? 'closed' : 'open';
@@ -56,12 +72,14 @@ export default function MyJobsPage() {
 
     const filtered = jobs.filter((job) => {
         if (activeTab === 'เปิดรับ') return job.status === 'open';
-        if (activeTab === 'ปิดรับ') return job.status !== 'open';
+        if (activeTab === 'ปิดรับ') return job.status === 'closed';
+        if (activeTab === 'เสร็จแล้ว') return job.status === 'completed';
         return true;
     });
 
     const openCount = jobs.filter((j) => j.status === 'open').length;
-    const closedCount = jobs.length - openCount;
+    const completedCount = jobs.filter((j) => j.status === 'completed').length;
+    const closedCount = jobs.filter((j) => j.status === 'closed').length;
 
     const formatDate = (iso: string) =>
         new Date(iso).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -120,6 +138,7 @@ export default function MyJobsPage() {
                                 {tab}
                                 {tab === 'เปิดรับ' && openCount > 0 && ` (${openCount})`}
                                 {tab === 'ปิดรับ' && closedCount > 0 && ` (${closedCount})`}
+                                {tab === 'เสร็จแล้ว' && completedCount > 0 && ` (${completedCount})`}
                             </button>
                         ))}
                     </div>
@@ -149,6 +168,7 @@ export default function MyJobsPage() {
                             {filtered.map((job) => {
                                 const label = TYPE_MAP[job.type] ?? job.type;
                                 const isOpen = job.status === 'open';
+                                const isCompleted = job.status === 'completed';
                                 const applicants = job._count?.applications ?? 0;
                                 const isToggling = togglingId === job.id;
 
@@ -157,8 +177,8 @@ export default function MyJobsPage() {
                                         <div className="flex items-start justify-between gap-3 mb-2">
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOpen ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                                                        {isOpen ? '● เปิดรับ' : '○ ปิดรับ'}
+                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isCompleted ? 'bg-blue-100 text-blue-700' : isOpen ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                                                        {isCompleted ? '✓ เสร็จแล้ว' : isOpen ? '● เปิดรับ' : '○ ปิดรับ'}
                                                     </span>
                                                     <span className="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
                                                         {label}
@@ -187,36 +207,68 @@ export default function MyJobsPage() {
                                             )}
                                         </div>
 
-                                        <div className="flex gap-2 flex-wrap">
-                                            <Link
-                                                href={`/workboard/${job.id}`}
-                                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
-                                            >
-                                                <Eye size={13} /> ดูรายละเอียด
-                                            </Link>
-                                            <Link
-                                                href={`/employer/candidates?jobId=${job.id}`}
-                                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-                                            >
-                                                <Users size={13} /> ดูผู้สมัคร {applicants > 0 && `(${applicants})`}
-                                            </Link>
-                                            <button
-                                                onClick={() => toggleStatus(job)}
-                                                disabled={isToggling}
-                                                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors disabled:opacity-60 ${isOpen
-                                                    ? 'bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600'
-                                                    : 'bg-green-50 text-green-600 hover:bg-green-100'
-                                                    }`}
-                                            >
-                                                {isToggling ? (
-                                                    <Loader2 size={13} className="animate-spin" />
-                                                ) : isOpen ? (
-                                                    <><XCircle size={13} /> ปิดรับสมัคร</>
-                                                ) : (
-                                                    <><CheckCircle size={13} /> เปิดรับสมัคร</>
+                                        {/* ── Inline delete confirmation ── */}
+                                        {confirmDeleteId === job.id ? (
+                                            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200">
+                                                <AlertTriangle size={14} className="text-red-500 shrink-0" />
+                                                <p className="text-xs font-semibold text-red-700 flex-1">
+                                                    ยืนยันลบ "{job.title}"? ไม่สามารถกู้คืนได้
+                                                </p>
+                                                <button
+                                                    onClick={() => handleDelete(job.id)}
+                                                    disabled={deletingId === job.id}
+                                                    className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 transition-colors"
+                                                >
+                                                    {deletingId === job.id ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+                                                    ลบเลย
+                                                </button>
+                                                <button
+                                                    onClick={() => setConfirmDeleteId(null)}
+                                                    className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                                                >
+                                                    ยกเลิก
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-2 flex-wrap">
+                                                <Link
+                                                    href={`/workboard/${job.id}`}
+                                                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                                                >
+                                                    <Eye size={13} /> ดูรายละเอียด
+                                                </Link>
+                                                <Link
+                                                    href={`/employer/candidates?jobId=${job.id}`}
+                                                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                                >
+                                                    <Users size={13} /> ดูผู้สมัคร {applicants > 0 && `(${applicants})`}
+                                                </Link>
+                                                {!isCompleted && (
+                                                    <button
+                                                        onClick={() => toggleStatus(job)}
+                                                        disabled={isToggling}
+                                                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors disabled:opacity-60 ${isOpen
+                                                            ? 'bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600'
+                                                            : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                                            }`}
+                                                    >
+                                                        {isToggling ? (
+                                                            <Loader2 size={13} className="animate-spin" />
+                                                        ) : isOpen ? (
+                                                            <><XCircle size={13} /> ปิดรับสมัคร</>
+                                                        ) : (
+                                                            <><CheckCircle size={13} /> เปิดรับสมัคร</>
+                                                        )}
+                                                    </button>
                                                 )}
-                                            </button>
-                                        </div>
+                                                <button
+                                                    onClick={() => setConfirmDeleteId(job.id)}
+                                                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors ml-auto"
+                                                >
+                                                    <Trash2 size={13} /> ลบ
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}

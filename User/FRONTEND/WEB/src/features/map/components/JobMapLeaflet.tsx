@@ -132,10 +132,10 @@ export default function JobMapLeaflet({ jobs, mapHeight, userLocation }: Props) 
 
             const typeColorMap: Record<string, string> = {
                 'งานด่วน': '#ef4444',
-                'Safezone': '#ec4899',
+                'เซฟโซน': '#ec4899',
                 'Premium': '#f59e0b',
-                'Full-time': '#3b82f6',
-                'Part-time': '#22c55e',
+                'ฟูลไทม์': '#3b82f6',
+                'พาร์ทไทม์': '#22c55e',
             };
 
             jobs.forEach((job) => {

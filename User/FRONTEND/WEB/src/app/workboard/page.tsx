@@ -1,16 +1,24 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Navbar from '../../components/Navbar';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Briefcase, Plus, Search, MapPin, Users, CheckCircle2, XCircle,
-    Loader2, Clock, ChevronRight, Eye, Star, Wrench,
+    Loader2, Clock, ChevronRight, ChevronDown, Eye, Star, Wrench,
     Phone, X, Trash2, UserCheck,
+    PackageCheck, AlertTriangle, ShieldCheck, RefreshCw, ClipboardList,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { getAuthSession, type AuthSession } from '../../features/auth/lib/auth';
+import {
+    listEscrows, markWorkDone, confirmEscrow, disputeEscrow, cancelEscrow,
+    type Escrow,
+} from '../../features/payments/lib/escrow-api';
+import { formatThb } from '../../features/payments/lib/wallet-api';
+import NeedRegistrationModal from '../../components/NeedRegistrationModal';
+import ApplyModal from '../../components/ApplyModal';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,19 +39,277 @@ type WorkerPost = {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const TYPE_MAP: Record<string, string> = {
-    urgent: 'งานด่วน', parttime: 'Part-time', fulltime: 'Full-time', safezone: 'Safezone',
+    urgent: 'งานด่วน', parttime: 'พาร์ทไทม์', fulltime: 'ฟูลไทม์', safezone: 'เซฟโซน',
 };
 const TYPE_COLOR: Record<string, string> = {
     'งานด่วน': 'bg-red-100 text-red-600',
-    'Part-time': 'bg-green-100 text-green-600',
-    'Full-time': 'bg-blue-100 text-blue-600',
-    'Safezone': 'bg-pink-100 text-pink-600',
+    'พาร์ทไทม์': 'bg-green-100 text-green-600',
+    'ฟูลไทม์': 'bg-blue-100 text-blue-600',
+    'เซฟโซน': 'bg-pink-100 text-pink-600',
 };
 const SKILL_SUGGESTIONS = [
     'ช่างไฟฟ้า', 'ช่างประปา', 'ช่างแอร์', 'ช่างยนต์', 'ทำความสะอาด',
     'ทำสวน', 'ทาสี', 'งานก่อสร้าง', 'ขับรถ', 'แม่บ้าน',
     'ดูแลผู้สูงอายุ', 'งานครัว', 'รักษาความปลอดภัย', 'งานออฟฟิศ',
 ];
+
+// ─── Work Status Sidebar ──────────────────────────────────────────────────────
+// NOTE: Moved to src/components/MyJobsPanel.tsx — global drawer mounted in Navbar.
+// This local copy is kept temporarily (no longer rendered).
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function WorkSidebar({ session, onClose }: { session: AuthSession; onClose: () => void }) {
+    const userId = Number(session.userId);
+    const [escrows, setEscrows] = useState<Escrow[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [busyId, setBusyId] = useState<number | null>(null);
+
+    const load = useCallback(async () => {
+        try {
+            setEscrows(await listEscrows());
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
+
+    const run = async (escrowId: number, fn: () => Promise<unknown>) => {
+        setBusyId(escrowId);
+        try {
+            await fn();
+            await load();
+        } catch (e: unknown) {
+            const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'ดำเนินการไม่สำเร็จ';
+            window.alert(msg);
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    // Split into worker view (jobs I'm doing) and employer view (jobs I posted)
+    const asWorker = escrows.filter((e) => e.workerId === userId && ['HELD', 'PENDING_CONFIRMATION'].includes(e.status));
+    const asEmployer = escrows.filter((e) => e.employerId === userId && ['HELD', 'PENDING_CONFIRMATION'].includes(e.status));
+
+    // Nothing active on either side
+    const isEmpty = asWorker.length === 0 && asEmployer.length === 0;
+
+    // Dot badge count: employer confirmations pending
+    const urgentCount = asEmployer.filter((e) => e.status === 'PENDING_CONFIRMATION').length;
+
+    if (loading) {
+        return (
+            <div className="h-full bg-white flex flex-col">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50 shrink-0">
+                    <div className="flex items-center gap-2">
+                        <ClipboardList size={15} className="text-blue-600" />
+                        <span className="text-sm font-bold text-slate-800">งานของฉัน</span>
+                    </div>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+                        <X size={16} />
+                    </button>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="h-full bg-white flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50 shrink-0">
+                <div className="flex items-center gap-2">
+                    <ClipboardList size={15} className="text-blue-600" />
+                    <span className="text-sm font-bold text-slate-800">งานของฉัน</span>
+                    {urgentCount > 0 && (
+                        <span className="h-5 min-w-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
+                            {urgentCount}
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={load}
+                        className="text-slate-400 hover:text-blue-600 transition-colors p-1 rounded-lg hover:bg-slate-100"
+                    >
+                        <RefreshCw size={13} />
+                    </button>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+                        <X size={16} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto">
+                <div className="divide-y divide-slate-100">
+                        {isEmpty && (
+                            <div className="px-4 py-8 text-center">
+                                <Briefcase className="h-8 w-8 text-slate-200 mx-auto mb-2" />
+                                <p className="text-xs text-slate-400">ยังไม่มีงานที่กำลังดำเนินการ</p>
+                            </div>
+                        )}
+
+                        {/* ── Worker section: jobs I'm doing ─────────────────────── */}
+                        {asWorker.length > 0 && (
+                            <div>
+                                <p className="px-4 pt-3 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    งานที่กำลังทำ
+                                </p>
+                                {asWorker.map((e) => {
+                                    const busy = busyId === e.id;
+                                    const net = e.amount - e.feeAmount;
+                                    return (
+                                        <div key={e.id} className="px-4 py-3 space-y-2">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <Link
+                                                    href={`/workboard/${e.jobId}`}
+                                                    className="text-sm font-semibold text-slate-800 leading-tight hover:text-blue-600 line-clamp-2"
+                                                >
+                                                    {e.job.title}
+                                                </Link>
+                                                <span className="text-xs font-bold text-blue-600 shrink-0">
+                                                    {formatThb(net)}
+                                                </span>
+                                            </div>
+
+                                            {e.status === 'HELD' && (
+                                                <>
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                                                        <Clock size={9} /> กำลังทำงาน
+                                                    </span>
+                                                    <button
+                                                        disabled={busy}
+                                                        onClick={() => run(e.id, () => markWorkDone(e.id))}
+                                                        className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                                    >
+                                                        {busy ? <Loader2 size={12} className="animate-spin" /> : <PackageCheck size={12} />}
+                                                        ทำงานเสร็จแล้ว
+                                                    </button>
+                                                </>
+                                            )}
+
+                                            {e.status === 'PENDING_CONFIRMATION' && (
+                                                <>
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                                                        <Clock size={9} /> รอผู้ว่าจ้างยืนยัน
+                                                    </span>
+                                                    {e.autoReleaseAt && (
+                                                        <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                                                            <Clock size={9} />
+                                                            ปล่อยอัตโนมัติ {new Date(e.autoReleaseAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                                                        </p>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* ── Employer section: jobs I posted that need action ────── */}
+                        {asEmployer.length > 0 && (
+                            <div>
+                                <p className="px-4 pt-3 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    งานที่โพสต์
+                                </p>
+                                {asEmployer.map((e) => {
+                                    const busy = busyId === e.id;
+                                    const isPending = e.status === 'PENDING_CONFIRMATION';
+                                    return (
+                                        <div
+                                            key={e.id}
+                                            className={`px-4 py-3 space-y-2 ${isPending ? 'bg-amber-50' : ''}`}
+                                        >
+                                            <div className="flex items-start justify-between gap-2">
+                                                <Link
+                                                    href={`/employer/candidates?jobId=${e.jobId}`}
+                                                    className="text-sm font-semibold text-slate-800 leading-tight hover:text-blue-600 line-clamp-2"
+                                                >
+                                                    {e.job.title}
+                                                </Link>
+                                                <span className="text-xs font-bold text-blue-600 shrink-0">
+                                                    {formatThb(e.amount)}
+                                                </span>
+                                            </div>
+
+                                            {isPending && (
+                                                <>
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                                                        <PackageCheck size={9} /> Worker แจ้งงานเสร็จ 🔔
+                                                    </span>
+                                                    {e.autoReleaseAt && (
+                                                        <p className="text-[10px] text-amber-600 flex items-center gap-1">
+                                                            <Clock size={9} />
+                                                            ปล่อยอัตโนมัติ {new Date(e.autoReleaseAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                                                        </p>
+                                                    )}
+                                                    <div className="flex gap-1.5">
+                                                        <button
+                                                            disabled={busy}
+                                                            onClick={() => run(e.id, () => confirmEscrow(e.id))}
+                                                            className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-emerald-600 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                                                        >
+                                                            {busy ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle2 size={10} />}
+                                                            ยืนยันจ่าย
+                                                        </button>
+                                                        <button
+                                                            disabled={busy}
+                                                            onClick={() => {
+                                                                const reason = window.prompt('ระบุปัญหา (5+ ตัวอักษร)');
+                                                                if (reason && reason.trim().length >= 5) {
+                                                                    run(e.id, () => disputeEscrow(e.id, reason.trim()));
+                                                                }
+                                                            }}
+                                                            className="flex items-center justify-center gap-1 rounded-lg border border-rose-300 px-2.5 py-1.5 text-[11px] font-bold text-rose-600 hover:bg-rose-50 disabled:opacity-50 transition-colors"
+                                                        >
+                                                            <AlertTriangle size={10} /> ปัญหา
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            {e.status === 'HELD' && (
+                                                <>
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                                                        <ShieldCheck size={9} /> เงินถูกกันไว้
+                                                    </span>
+                                                    <button
+                                                        disabled={busy}
+                                                        onClick={() => {
+                                                            if (window.confirm('ยกเลิกงานและคืนเงิน?')) {
+                                                                run(e.id, () => cancelEscrow(e.id));
+                                                            }
+                                                        }}
+                                                        className="w-full flex items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-colors"
+                                                    >
+                                                        <XCircle size={10} /> ยกเลิก & คืนเงิน
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                </div>
+            </div>
+
+            {/* Footer — pinned at bottom */}
+            <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50 shrink-0">
+                <Link
+                    href="/escrow"
+                    className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-blue-600 transition-colors"
+                >
+                    <ShieldCheck size={11} /> ดูประวัติ Escrow ทั้งหมด <ChevronRight size={11} />
+                </Link>
+            </div>
+        </div>
+    );
+}
 
 // ─── Post Skill Modal ─────────────────────────────────────────────────────────
 
@@ -456,7 +722,7 @@ function SkillBoard({ session }: { session: AuthSession | null }) {
 
 // ─── Job Board tab content ────────────────────────────────────────────────────
 
-const FILTER_TABS = ['ทั้งหมด', 'งานด่วน', 'Part-time', 'Full-time', 'Safezone'];
+const FILTER_TABS = ['ทั้งหมด', 'งานด่วน', 'พาร์ทไทม์', 'ฟูลไทม์', 'เซฟโซน'];
 
 function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null; initialSearch?: string }) {
     const [jobs, setJobs] = useState<Job[]>([]);
@@ -465,6 +731,8 @@ function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null
     const [activeFilter, setActiveFilter] = useState('ทั้งหมด');
     const [applyingIds, setApplyingIds] = useState<Set<number>>(new Set());
     const [appliedIds, setAppliedIds] = useState<Set<number>>(new Set());
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [applyModalJob, setApplyModalJob] = useState<Job | null>(null);
 
     const isEmployer = session?.role === 'employer';
     const isWorker = session && !isEmployer;
@@ -472,9 +740,20 @@ function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null
     useEffect(() => {
         const url = isEmployer ? `/jobs?postedById=${session!.userId}` : '/jobs';
         api.get(url)
-            .then(({ data }) => setJobs(Array.isArray(data) ? (isEmployer ? data : data.filter((j: Job) => j.status === 'open')) : []))
+            .then(({ data }) => setJobs(Array.isArray(data) ? (isEmployer ? data.filter((j: Job) => j.status !== 'completed') : data.filter((j: Job) => j.status === 'open')) : []))
             .catch(() => setJobs([]))
             .finally(() => setLoading(false));
+
+        // Pre-populate applied job IDs so "สมัครแล้ว" shows immediately after refresh
+        if (isWorker && session) {
+            api.get(`/applications/worker/${session.userId}`)
+                .then(({ data }) => {
+                    if (Array.isArray(data)) {
+                        setAppliedIds(new Set(data.map((a: { job?: { id: number } }) => a.job?.id).filter(Boolean) as number[]));
+                    }
+                })
+                .catch(() => {/* non-critical */});
+        }
     }, []);
 
     const toggleStatus = async (job: Job) => {
@@ -485,18 +764,27 @@ function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null
         } catch { /* ignore */ }
     };
 
-    const handleApply = async (job: Job) => {
+    // Gate: check auth + profile, then open the experience modal
+    const handleApply = (job: Job) => {
         if (!session) { window.location.href = '/login'; return; }
+        if (!session.profileCompleted) { setShowRegisterModal(true); return; }
         if (appliedIds.has(job.id) || applyingIds.has(job.id)) return;
+        setApplyModalJob(job);
+    };
+
+    // Actual submit — called by ApplyModal after experience is filled in
+    const submitApply = async (job: Job, experience: string) => {
         setApplyingIds((prev) => new Set(prev).add(job.id));
         try {
-            await api.post('/applications', { jobId: job.id, workerId: Number(session.userId) });
+            await api.post('/applications', { jobId: job.id, workerId: Number(session!.userId), message: experience });
             setAppliedIds((prev) => new Set(prev).add(job.id));
+            setApplyModalJob(null);
         } catch (err: any) {
             const msg = err?.response?.data?.message;
-            if (msg === 'Already applied to this job') setAppliedIds((prev) => new Set(prev).add(job.id));
-            else if (msg === 'You cannot apply to your own job') alert('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
-            else alert(msg || 'เกิดข้อผิดพลาด');
+            if (msg === 'Already applied to this job') { setAppliedIds((prev) => new Set(prev).add(job.id)); setApplyModalJob(null); }
+            else if (msg === 'You cannot apply to your own job') throw new Error('คุณไม่สามารถสมัครงานที่คุณโพสต์เองได้');
+            else if (msg === 'PROFILE_INCOMPLETE') { setShowRegisterModal(true); setApplyModalJob(null); }
+            else throw new Error(msg || 'เกิดข้อผิดพลาด');
         } finally {
             setApplyingIds((prev) => { const s = new Set(prev); s.delete(job.id); return s; });
         }
@@ -649,6 +937,18 @@ function JobBoard({ session, initialSearch = '' }: { session: AuthSession | null
                     </div>
                 </>
             )}
+
+            {showRegisterModal && (
+                <NeedRegistrationModal onClose={() => setShowRegisterModal(false)} />
+            )}
+
+            {applyModalJob && (
+                <ApplyModal
+                    job={applyModalJob}
+                    onClose={() => setApplyModalJob(null)}
+                    onApply={(exp) => submitApply(applyModalJob, exp)}
+                />
+            )}
         </div>
     );
 }
@@ -702,8 +1002,10 @@ function WorkboardContent() {
                     ) : (
                         <SkillBoard session={resolvedSession} />
                     )}
+
                 </div>
             </div>
+
         </>
     );
 }

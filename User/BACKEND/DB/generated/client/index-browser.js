@@ -148,6 +148,19 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  link: 'link',
+  refType: 'refType',
+  refId: 'refId',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.UserReviewScalarFieldEnum = {
   id: 'id',
   authorId: 'authorId',
@@ -225,6 +238,81 @@ exports.Prisma.MessageScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.WalletScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  balance: 'balance',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WalletTransactionScalarFieldEnum = {
+  id: 'id',
+  walletId: 'walletId',
+  type: 'type',
+  amount: 'amount',
+  balanceAfter: 'balanceAfter',
+  refType: 'refType',
+  refId: 'refId',
+  description: 'description',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EscrowScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  applicationId: 'applicationId',
+  employerId: 'employerId',
+  workerId: 'workerId',
+  amount: 'amount',
+  feeAmount: 'feeAmount',
+  status: 'status',
+  createdAt: 'createdAt',
+  releasedAt: 'releasedAt',
+  workerMarkedDoneAt: 'workerMarkedDoneAt',
+  autoReleaseAt: 'autoReleaseAt',
+  disputedAt: 'disputedAt',
+  disputeReason: 'disputeReason'
+};
+
+exports.Prisma.TopUpScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  amount: 'amount',
+  provider: 'provider',
+  providerChargeId: 'providerChargeId',
+  qrPayload: 'qrPayload',
+  status: 'status',
+  createdAt: 'createdAt',
+  paidAt: 'paidAt'
+};
+
+exports.Prisma.BankAccountScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  bankCode: 'bankCode',
+  bankName: 'bankName',
+  accountNumber: 'accountNumber',
+  accountName: 'accountName',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WithdrawalScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  bankAccountId: 'bankAccountId',
+  amount: 'amount',
+  feeAmount: 'feeAmount',
+  bankName: 'bankName',
+  accountNumber: 'accountNumber',
+  accountName: 'accountName',
+  status: 'status',
+  providerTransferId: 'providerTransferId',
+  createdAt: 'createdAt',
+  processedAt: 'processedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -238,13 +326,20 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  Notification: 'Notification',
   UserReview: 'UserReview',
   Job: 'Job',
   Application: 'Application',
   Review: 'Review',
   WorkerPost: 'WorkerPost',
   Conversation: 'Conversation',
-  Message: 'Message'
+  Message: 'Message',
+  Wallet: 'Wallet',
+  WalletTransaction: 'WalletTransaction',
+  Escrow: 'Escrow',
+  TopUp: 'TopUp',
+  BankAccount: 'BankAccount',
+  Withdrawal: 'Withdrawal'
 };
 
 /**

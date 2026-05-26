@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { Job, Prisma } from '@workder/user-db';
 
@@ -61,8 +61,18 @@ export class JobsService {
     }
 
     async deleteJob(where: Prisma.JobWhereUniqueInput): Promise<Job> {
-        return this.prisma.job.delete({
-            where,
+        // Block deletion if there is an active escrow (money is being held)
+        const activeEscrow = await this.prisma.escrow.findFirst({
+            where: {
+                jobId: where.id as number,
+                status: { in: ['HELD', 'PENDING_CONFIRMATION'] },
+            },
         });
+        if (activeEscrow) {
+            throw new BadRequestException(
+                'ไม่สามารถลบงานที่มีงานกำลังดำเนินการอยู่ได้ กรุณารอให้งานเสร็จสิ้นและยืนยันการจ่ายก่อน',
+            );
+        }
+        return this.prisma.job.delete({ where });
     }
 }

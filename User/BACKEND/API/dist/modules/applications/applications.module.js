@@ -10,11 +10,15 @@ exports.ApplicationsModule = void 0;
 const common_1 = require("@nestjs/common");
 const applications_controller_1 = require("./applications.controller");
 const applications_service_1 = require("./applications.service");
+const escrow_module_1 = require("../escrow/escrow.module");
+const auth_module_1 = require("../auth/auth.module");
+const notifications_module_1 = require("../notifications/notifications.module");
 let ApplicationsModule = class ApplicationsModule {
 };
 exports.ApplicationsModule = ApplicationsModule;
 exports.ApplicationsModule = ApplicationsModule = __decorate([
     (0, common_1.Module)({
+        imports: [auth_module_1.AuthModule, escrow_module_1.EscrowModule, notifications_module_1.NotificationsModule],
         controllers: [applications_controller_1.ApplicationsController],
         providers: [applications_service_1.ApplicationsService],
     })

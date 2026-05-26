@@ -4,7 +4,23 @@
       "PowerShell(Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"c:\\\\Cluade_Workder\\\\WORKDER-main\\\\Admin\\\\FRONTEND\\\\WEB\"; pnpm dev' -WindowStyle Normal)",
       "PowerShell(Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"c:\\\\Cluade_Workder\\\\WORKDER-main\\\\User\\\\FRONTEND\\\\WEB\"; pnpm dev' -WindowStyle Normal)",
       "Bash(npx tsc *)",
-      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Cluade_Workder\\\\WORKDER-main\\\\User\\\\FRONTEND\\\\WEB\\\\src\\\\app\\\\workboard\")"
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Cluade_Workder\\\\WORKDER-main\\\\User\\\\FRONTEND\\\\WEB\\\\src\\\\app\\\\workboard\")",
+      "Bash(netstat -ano)",
+      "Bash(pnpm dev:user:api)",
+      "Bash(echo \"API PID: $!\")",
+      "Bash(pnpm dev:user:web)",
+      "Bash(echo \"Web PID: $!\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /dev/null -w \"API health: HTTP %{http_code}\" http://localhost:4001)",
+      "Bash(curl -s -o /dev/null -w \"Web: HTTP %{http_code}\" http://localhost:3001)",
+      "Bash(findstr \"LISTENING\")",
+      "Bash(findstr \":400\\\\|:300\\\\|:3001\\\\|:4001\")",
+      "Bash(curl -s http://localhost:4001/health)",
+      "Bash(curl -s http://localhost:4001/)",
+      "Bash(curl *)",
+      "Bash(Select-Object Name)",
+      "PowerShell(\\(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -eq 'Dhcp' -or $_.InterfaceAlias -match 'Wi-Fi|Ethernet' }\\) | Select-Object IPAddress, InterfaceAlias | Format-Table -AutoSize)",
+      "PowerShell(Get-NetTCPConnection *)"
     ]
   }
 }

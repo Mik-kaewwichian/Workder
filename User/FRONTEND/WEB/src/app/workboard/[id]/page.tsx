@@ -76,6 +76,7 @@ function JobLocationMap({ lat, lng }: { lat: number; lng: number }) {
     useEffect(() => {
         if (!ref.current) return;
 
+        // Ensure Leaflet CSS is present
         if (!document.querySelector('link[data-leaflet]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
@@ -84,30 +85,61 @@ function JobLocationMap({ lat, lng }: { lat: number; lng: number }) {
             document.head.appendChild(link);
         }
 
-        const init = () => {
-            const L = (window as any).L;
-            if (!ref.current) return;
-            const map = L.map(ref.current, { zoomControl: false, dragging: false, scrollWheelZoom: false })
+        let mapInstance: import('leaflet').Map | null = null;
+        let cancelled = false;
+
+        // Use dynamic import (same as JobMapLeaflet) — avoids global window.L conflicts
+        // and ensures the cleanup function is always returned properly.
+        import('leaflet').then((L) => {
+            if (cancelled || !ref.current) return;
+
+            mapInstance = L.default
+                .map(ref.current, {
+                    zoomControl: false,
+                    dragging: false,
+                    scrollWheelZoom: false,
+                    doubleClickZoom: false,
+                    keyboard: false,
+                })
                 .setView([lat, lng], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-            const icon = L.divIcon({
+            L.default
+                .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                })
+                .addTo(mapInstance);
+
+            const icon = L.default.divIcon({
                 className: '',
-                html: `<div style="width:32px;height:32px;background:#2563eb;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.3)"><div style="width:8px;height:8px;background:white;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(45deg)"></div></div>`,
-                iconSize: [32, 32], iconAnchor: [16, 32],
+                html: `<div style="width:32px;height:32px;background:#2563eb;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.3)">
+                    <div style="width:8px;height:8px;background:white;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(45deg)"></div>
+                </div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
             });
-            L.marker([lat, lng], { icon }).addTo(map);
-            return () => map.remove();
-        };
+            L.default.marker([lat, lng], { icon }).addTo(mapInstance);
 
-        if ((window as any).L) { const cleanup = init(); return cleanup; }
-        const s = document.createElement('script');
-        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        s.onload = () => init();
-        document.head.appendChild(s);
+            // Fix tile misalignment after the container is fully painted
+            setTimeout(() => mapInstance?.invalidateSize(), 150);
+        });
+
+        return () => {
+            cancelled = true;
+            if (mapInstance) {
+                mapInstance.remove();
+                mapInstance = null;
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lat, lng]);
 
-    return <div ref={ref} className="w-full h-48 rounded-xl overflow-hidden border border-slate-200" />;
+    return (
+        <div
+            ref={ref}
+            style={{ height: '192px', width: '100%' }}
+            className="rounded-xl overflow-hidden border border-slate-200"
+        />
+    );
 }
 
 // ─── Image gallery ────────────────────────────────────────────────────────────

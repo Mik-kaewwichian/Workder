@@ -211,7 +211,7 @@ export default function Navbar() {
                                     </button>
 
                                     {isAccountMenuOpen && (
-                                        <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-1 shadow-xl">
+                                        <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-1 shadow-xl max-h-[80vh] overflow-y-auto">
                                             <div className="px-3 py-2.5 border-b border-slate-100 mb-1">
                                                 <div className="flex items-center gap-2 mb-0.5">
                                                     <p className="text-base font-semibold text-slate-800">

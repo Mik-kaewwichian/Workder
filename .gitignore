@@ -4,3 +4,12 @@ node_modules
 .env
 .env.*
 !.env.example
+
+# dev server output (api.log, web.log, admin-*.log)
+*.log
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
+# local SQLite (recreate via pnpm db:user:push / db:user:seed)
+dev.db

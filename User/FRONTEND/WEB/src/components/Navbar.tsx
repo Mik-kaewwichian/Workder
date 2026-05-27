@@ -15,7 +15,7 @@ export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
     const [session, setSession] = useState<AuthSession | null>(null);
-    const { totalUnreadCount } = useNotifications();
+    const { totalUnreadCount, unreadMessagesCount } = useNotifications();
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -155,6 +155,20 @@ export default function Navbar() {
                                     ? pathname === '/'
                                     : pathname.startsWith(item.href)
                                 : false;
+                            const showMsgBadge = item.name === 'ข้อความ' && unreadMessagesCount > 0;
+                            const inner = (
+                                <>
+                                    <span className="relative inline-flex items-center">
+                                        {item.icon}
+                                        {showMsgBadge && (
+                                            <span className="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+                                        )}
+                                    </span>
+                                    <span className={showMsgBadge ? 'text-red-600 font-semibold' : ''}>
+                                        {item.name}
+                                    </span>
+                                </>
+                            );
                             return item.href ? (
                                 <Link
                                     key={item.name}
@@ -167,8 +181,7 @@ export default function Navbar() {
                                             : item.className || 'text-slate-600 hover:text-blue-600 hover:bg-white hover:shadow-sm'
                                     }`}
                                 >
-                                    {item.icon}
-                                    {item.name}
+                                    {inner}
                                 </Link>
                             ) : (
                                 <button
@@ -176,8 +189,7 @@ export default function Navbar() {
                                     onClick={item.action}
                                     className={`flex items-center gap-2 px-5 py-2 text-base font-medium rounded-full transition-all ${item.className || 'text-slate-600 hover:text-blue-600 hover:bg-white hover:shadow-sm'}`}
                                 >
-                                    {item.icon}
-                                    {item.name}
+                                    {inner}
                                 </button>
                             );
                         })}
@@ -239,17 +251,25 @@ export default function Navbar() {
                                             </div>
 
                                             <div className="py-1">
-                                                {(isEmployer ? employerMenuItems : userMenuItems).map((item, index) => (
-                                                    <button
-                                                        key={index}
-                                                        onClick={item.onClick}
-                                                        className="w-full text-left px-4 py-2 text-base text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2"
-                                                    >
-                                                        {item.icon}
-                                                        {item.label}
-                                                        {item.comingSoon && <span className="text-[10px] text-slate-400 ml-auto">เร็วๆ นี้</span>}
-                                                    </button>
-                                                ))}
+                                                {(isEmployer ? employerMenuItems : userMenuItems).map((item, index) => {
+                                                    const showMsgBadge = item.label === 'ข้อความ' && unreadMessagesCount > 0;
+                                                    return (
+                                                        <button
+                                                            key={index}
+                                                            onClick={item.onClick}
+                                                            className="w-full text-left px-4 py-2 text-base text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2"
+                                                        >
+                                                            {item.icon}
+                                                            <span className={showMsgBadge ? 'text-red-600 font-semibold' : ''}>{item.label}</span>
+                                                            {showMsgBadge && (
+                                                                <span className="ml-auto h-5 min-w-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+                                                                    {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                                                                </span>
+                                                            )}
+                                                            {item.comingSoon && <span className="text-[10px] text-slate-400 ml-auto">เร็วๆ นี้</span>}
+                                                        </button>
+                                                    );
+                                                })}
 
                                                 <div className="border-t border-slate-100 my-1"></div>
                                                 <button

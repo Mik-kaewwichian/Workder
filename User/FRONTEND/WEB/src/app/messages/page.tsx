@@ -350,7 +350,9 @@ function MessagesContent({ session }: { session: AuthSession }) {
                                             className={`w-full text-left px-4 py-3 border-b border-slate-100 flex gap-3 transition-colors ${
                                                 active
                                                     ? 'bg-blue-50'
-                                                    : 'hover:bg-slate-50'
+                                                    : c.unreadCount > 0
+                                                        ? 'bg-red-50/60 hover:bg-red-50'
+                                                        : 'hover:bg-slate-50'
                                             }`}
                                         >
                                             <div className="h-11 w-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shrink-0">
@@ -387,7 +389,7 @@ function MessagesContent({ session }: { session: AuthSession }) {
                                                             : 'ยังไม่มีข้อความ'}
                                                     </p>
                                                     {c.unreadCount > 0 && (
-                                                        <span className="shrink-0 h-5 min-w-5 px-1.5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
+                                                        <span className="shrink-0 h-5 min-w-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
                                                             {c.unreadCount}
                                                         </span>
                                                     )}

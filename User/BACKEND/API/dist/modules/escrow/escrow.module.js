@@ -10,6 +10,7 @@ exports.EscrowModule = void 0;
 const common_1 = require("@nestjs/common");
 const auth_module_1 = require("../auth/auth.module");
 const wallet_module_1 = require("../wallet/wallet.module");
+const notifications_module_1 = require("../notifications/notifications.module");
 const escrow_controller_1 = require("./escrow.controller");
 const escrow_service_1 = require("./escrow.service");
 let EscrowModule = class EscrowModule {
@@ -17,7 +18,7 @@ let EscrowModule = class EscrowModule {
 exports.EscrowModule = EscrowModule;
 exports.EscrowModule = EscrowModule = __decorate([
     (0, common_1.Module)({
-        imports: [auth_module_1.AuthModule, wallet_module_1.WalletModule],
+        imports: [auth_module_1.AuthModule, wallet_module_1.WalletModule, notifications_module_1.NotificationsModule],
         controllers: [escrow_controller_1.EscrowController],
         providers: [escrow_service_1.EscrowService],
         exports: [escrow_service_1.EscrowService], // ApplicationsService holds escrow on accept

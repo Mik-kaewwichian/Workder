@@ -184,12 +184,16 @@ export class ApplicationsService {
                 return u;
             });
 
-            // Notify the worker — they got the job!
+            // Notify the worker — they got the job and the money is already in escrow.
+            const payThb = (job.payAmount ?? 0).toLocaleString('th-TH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
             await this.notify({
                 userId: application.workerId,
                 type: 'application_accepted',
                 title: 'ยินดีด้วย! คุณได้รับงาน',
-                body: `นายจ้างรับคุณเข้าทำงาน "${job.title}" แล้ว เริ่มงานได้เลย`,
+                body: `นายจ้างรับคุณเข้าทำงาน "${job.title}" และวางเงินค่าจ้าง ${payThb} บาท ในระบบ Escrow แล้ว — เริ่มงานได้เลย`,
                 link: `/workboard/${job.id}`,
                 refType: 'application',
                 refId: id,

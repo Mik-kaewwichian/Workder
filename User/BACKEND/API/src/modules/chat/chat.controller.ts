@@ -18,6 +18,12 @@ export class ChatController {
         return this.chatService.getConversations(userId);
     }
 
+    // Cheap count of all unread incoming messages (used by Navbar badge)
+    @Get('unread-count')
+    unread(@Query('userId', ParseIntPipe) userId: number) {
+        return this.chatService.unreadCount(userId);
+    }
+
     // Get one conversation's messages (also marks them read for this user)
     @Get('conversations/:id')
     messages(

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import {
     Bell, MessageSquare, ChevronRight, Briefcase, CheckCircle2, XCircle,
+    Wallet, AlarmClock, Ban,
 } from 'lucide-react';
 import { useNotifications, type Notification } from '../../contexts/NotificationContext';
 
@@ -26,6 +27,12 @@ function notificationVisual(type: string) {
             return { icon: <CheckCircle2 className="h-5 w-5 text-white" />, color: 'bg-green-500' };
         case 'application_rejected':
             return { icon: <XCircle className="h-5 w-5 text-white" />, color: 'bg-rose-500' };
+        case 'payment_released':
+            return { icon: <Wallet className="h-5 w-5 text-white" />, color: 'bg-emerald-500' };
+        case 'payment_auto_released':
+            return { icon: <AlarmClock className="h-5 w-5 text-white" />, color: 'bg-amber-500' };
+        case 'job_cancelled':
+            return { icon: <Ban className="h-5 w-5 text-white" />, color: 'bg-slate-500' };
         default:
             return { icon: <Bell className="h-5 w-5 text-white" />, color: 'bg-slate-500' };
     }
@@ -123,7 +130,7 @@ function NotificationsPageContent() {
                         >
                             ข้อความ
                             {unreadMessagesCount > 0 && (
-                                <span className="ml-2 inline-flex items-center justify-center bg-blue-600 text-white text-[10px] h-4 w-4 rounded-full">
+                                <span className="ml-2 inline-flex items-center justify-center bg-red-500 text-white text-[10px] h-4 w-4 rounded-full animate-pulse">
                                     {unreadMessagesCount}
                                 </span>
                             )}

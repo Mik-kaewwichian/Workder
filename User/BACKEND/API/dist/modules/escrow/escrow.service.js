@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../infra/prisma/prisma.service");
 const env_1 = require("../../config/env");
 const wallet_service_1 = require("../wallet/wallet.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 /**
  * Job escrow. Employer funds are HELD on acceptance and released to the
  * worker (minus platform fee, deducted from payout) on completion. Passive
@@ -23,13 +24,25 @@ const wallet_service_1 = require("../wallet/wallet.service");
 let EscrowService = class EscrowService {
     prisma;
     wallet;
+    notifications;
     logger = new common_1.Logger('EscrowService');
-    constructor(prisma, wallet) {
+    constructor(prisma, wallet, notifications) {
         this.prisma = prisma;
         this.wallet = wallet;
+        this.notifications = notifications;
     }
     feeFor(amountSatang) {
         return Math.round((amountSatang * env_1.env.wallet.platformFeeBps) / 10000);
+    }
+    /** Fire-and-forget — a notification failure must never roll back a payment. */
+    async notify(input) {
+        try {
+            await this.notifications.create(input);
+        }
+        catch { /* swallow */ }
+    }
+    formatThb(satang) {
+        return (satang / 100).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     // ── Hold (called from ApplicationsService.updateStatus → accepted) ───────
     /**
@@ -159,7 +172,22 @@ let EscrowService = class EscrowService {
         if (escrow.status !== 'PENDING_CONFIRMATION' && escrow.status !== 'HELD') {
             throw new common_1.ConflictException(`Cannot confirm in status ${escrow.status}`);
         }
-        return this.prisma.$transaction((tx) => this.releaseWithinTx(tx, escrowId));
+        const updated = await this.prisma.$transaction((tx) => this.releaseWithinTx(tx, escrowId));
+        const job = await this.prisma.job.findUnique({
+            where: { id: escrow.jobId },
+            select: { title: true },
+        });
+        const net = escrow.amount - escrow.feeAmount;
+        await this.notify({
+            userId: escrow.workerId,
+            type: 'payment_released',
+            title: 'ได้รับเงินค่าจ้างแล้ว',
+            body: `นายจ้างยืนยันการจ่ายเงินสำหรับงาน "${job?.title ?? ''}" จำนวน ${this.formatThb(net)} บาท เข้ากระเป๋าเงินของคุณแล้ว`,
+            link: '/wallet',
+            refType: 'escrow',
+            refId: escrow.id,
+        });
+        return updated;
     }
     /** Employer: dispute → freezes auto-release, escalates to admin (Phase 4). */
     async dispute(escrowId, employerId, reason) {
@@ -193,7 +221,21 @@ let EscrowService = class EscrowService {
         if (escrow.status !== 'HELD') {
             throw new common_1.ConflictException(`Can only cancel a HELD escrow (current: ${escrow.status})`);
         }
-        return this.prisma.$transaction((tx) => this.refundWithinTx(tx, escrowId));
+        const updated = await this.prisma.$transaction((tx) => this.refundWithinTx(tx, escrowId));
+        const job = await this.prisma.job.findUnique({
+            where: { id: escrow.jobId },
+            select: { title: true },
+        });
+        await this.notify({
+            userId: escrow.workerId,
+            type: 'job_cancelled',
+            title: 'นายจ้างยกเลิกงาน',
+            body: `งาน "${job?.title ?? ''}" ถูกยกเลิกโดยนายจ้าง คุณสามารถสมัครงานอื่นได้ตามปกติ`,
+            link: '/workboard',
+            refType: 'escrow',
+            refId: escrow.id,
+        });
+        return updated;
     }
     /**
      * Auto-release every PENDING_CONFIRMATION escrow past its deadline that
@@ -207,16 +249,32 @@ let EscrowService = class EscrowService {
                 disputedAt: null,
                 autoReleaseAt: { lte: new Date() },
             },
-            select: { id: true },
+            select: {
+                id: true,
+                workerId: true,
+                amount: true,
+                feeAmount: true,
+                job: { select: { title: true } },
+            },
         });
         let released = 0;
-        for (const { id } of due) {
+        for (const e of due) {
             try {
-                await this.prisma.$transaction((tx) => this.releaseWithinTx(tx, id));
+                await this.prisma.$transaction((tx) => this.releaseWithinTx(tx, e.id));
                 released++;
+                const net = e.amount - e.feeAmount;
+                await this.notify({
+                    userId: e.workerId,
+                    type: 'payment_auto_released',
+                    title: 'รับเงินอัตโนมัติแล้ว',
+                    body: `เนื่องจากนายจ้างไม่ได้ยืนยันภายในระยะเวลาที่กำหนด ระบบจึงโอนเงินค่างาน "${e.job?.title ?? ''}" จำนวน ${this.formatThb(net)} บาท เข้ากระเป๋าเงินของคุณอัตโนมัติ`,
+                    link: '/wallet',
+                    refType: 'escrow',
+                    refId: e.id,
+                });
             }
             catch (err) {
-                this.logger.error(`auto-release escrow #${id} failed: ${err.message}`);
+                this.logger.error(`auto-release escrow #${e.id} failed: ${err.message}`);
             }
         }
         if (released)
@@ -244,6 +302,8 @@ let EscrowService = class EscrowService {
             where: { OR: [{ employerId: userId }, { workerId: userId }] },
             include: {
                 job: { select: { id: true, title: true, payAmount: true } },
+                worker: { select: { id: true, firstName: true, lastName: true } },
+                employer: { select: { id: true, firstName: true, lastName: true } },
             },
             orderBy: { id: 'desc' },
         });
@@ -253,5 +313,6 @@ exports.EscrowService = EscrowService;
 exports.EscrowService = EscrowService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        wallet_service_1.WalletService])
+        wallet_service_1.WalletService,
+        notifications_service_1.NotificationsService])
 ], EscrowService);

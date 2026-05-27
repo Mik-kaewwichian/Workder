@@ -29,6 +29,10 @@ let ChatController = class ChatController {
     list(userId) {
         return this.chatService.getConversations(userId);
     }
+    // Cheap count of all unread incoming messages (used by Navbar badge)
+    unread(userId) {
+        return this.chatService.unreadCount(userId);
+    }
     // Get one conversation's messages (also marks them read for this user)
     messages(id, userId) {
         return this.chatService.getMessages(id, userId);
@@ -53,6 +57,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], ChatController.prototype, "list", null);
+__decorate([
+    (0, common_1.Get)('unread-count'),
+    __param(0, (0, common_1.Query)('userId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], ChatController.prototype, "unread", null);
 __decorate([
     (0, common_1.Get)('conversations/:id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),

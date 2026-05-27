@@ -37,6 +37,18 @@ let ChatService = class ChatService {
             },
         });
     }
+    async unreadCount(userId) {
+        const count = await this.prisma.message.count({
+            where: {
+                senderId: { not: userId },
+                readAt: null,
+                conversation: {
+                    OR: [{ employerId: userId }, { workerId: userId }],
+                },
+            },
+        });
+        return { count };
+    }
     async getConversations(userId) {
         const conversations = await this.prisma.conversation.findMany({
             where: { OR: [{ employerId: userId }, { workerId: userId }] },

@@ -46,17 +46,26 @@ const POLL_INTERVAL_MS = 20_000;
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [chats, setChats] = useState<ChatMessage[]>([]);
+    const [chatUnread, setChatUnread] = useState(0);
     const sessionRef = useRef<ReturnType<typeof getAuthSession>>(null);
 
     const refreshNotifications = useCallback(async () => {
         const session = getAuthSession();
         sessionRef.current = session;
-        if (!session) { setNotifications([]); return; }
+        if (!session) { setNotifications([]); setChatUnread(0); return; }
         try {
             const { data } = await api.get<Notification[]>('/notifications');
             setNotifications(Array.isArray(data) ? data : []);
         } catch {
             /* keep stale data */
+        }
+        try {
+            const { data } = await api.get<{ count: number }>(
+                `/chat/unread-count?userId=${session.userId}`,
+            );
+            setChatUnread(typeof data?.count === 'number' ? data.count : 0);
+        } catch {
+            /* keep stale count */
         }
     }, []);
 
@@ -102,7 +111,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }, []);
 
     const unreadNotificationsCount = notifications.filter((n) => !n.readAt).length;
-    const unreadMessagesCount = chats.reduce((acc, c) => acc + c.unread, 0);
+    // Real chat unreads come from /chat/unread-count; the stub array stays for the
+    // legacy notifications "ข้อความ" tab UI but no longer feeds the navbar badge.
+    const unreadMessagesCount = chatUnread;
     const totalUnreadCount = unreadNotificationsCount + unreadMessagesCount;
 
     return (

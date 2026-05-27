@@ -17,24 +17,12 @@ export type Notification = {
     createdAt: string;
 };
 
-// Chats kept as a localStorage stub for now — out of scope for the backend port.
-export type ChatMessage = {
-    id: number;
-    name: string;
-    message: string;
-    time: string;
-    unread: number;
-    avatar: string;
-};
-
 type NotificationContextType = {
     notifications: Notification[];
-    chats: ChatMessage[];
     unreadNotificationsCount: number;
     unreadMessagesCount: number;
     totalUnreadCount: number;
     markNotificationAsRead: (id: number) => Promise<void>;
-    markChatAsRead: (id: number) => void;
     markAllAsRead: () => Promise<void>;
     refreshNotifications: () => Promise<void>;
 };
@@ -45,7 +33,6 @@ const POLL_INTERVAL_MS = 20_000;
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [chats, setChats] = useState<ChatMessage[]>([]);
     const [chatUnread, setChatUnread] = useState(0);
     const sessionRef = useRef<ReturnType<typeof getAuthSession>>(null);
 
@@ -80,17 +67,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         return () => { clearInterval(interval); window.removeEventListener('storage', onStorage); };
     }, [refreshNotifications]);
 
-    // Chats stub — kept identical to the old localStorage behaviour
-    useEffect(() => {
-        const saved = localStorage.getItem('notifications_chats_v4');
-        if (saved) {
-            try { setChats(JSON.parse(saved)); } catch { /* ignore */ }
-        }
-    }, []);
-    useEffect(() => {
-        localStorage.setItem('notifications_chats_v4', JSON.stringify(chats));
-    }, [chats]);
-
     const markNotificationAsRead = useCallback(async (id: number) => {
         // Optimistic update
         setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, readAt: n.readAt ?? new Date().toISOString() } : n));
@@ -98,33 +74,24 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         catch { /* retry on next poll */ }
     }, []);
 
-    const markChatAsRead = useCallback((id: number) => {
-        setChats((prev) => prev.map((c) => c.id === id ? { ...c, unread: 0 } : c));
-    }, []);
-
     const markAllAsRead = useCallback(async () => {
         const now = new Date().toISOString();
         setNotifications((prev) => prev.map((n) => n.readAt ? n : { ...n, readAt: now }));
-        setChats((prev) => prev.map((c) => ({ ...c, unread: 0 })));
         try { await api.post('/notifications/read-all'); }
         catch { /* retry on next poll */ }
     }, []);
 
     const unreadNotificationsCount = notifications.filter((n) => !n.readAt).length;
-    // Real chat unreads come from /chat/unread-count; the stub array stays for the
-    // legacy notifications "ข้อความ" tab UI but no longer feeds the navbar badge.
     const unreadMessagesCount = chatUnread;
     const totalUnreadCount = unreadNotificationsCount + unreadMessagesCount;
 
     return (
         <NotificationContext.Provider value={{
             notifications,
-            chats,
             unreadNotificationsCount,
             unreadMessagesCount,
             totalUnreadCount,
             markNotificationAsRead,
-            markChatAsRead,
             markAllAsRead,
             refreshNotifications,
         }}>

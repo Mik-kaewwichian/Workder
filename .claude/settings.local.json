@@ -20,7 +20,20 @@
       "Bash(curl *)",
       "Bash(Select-Object Name)",
       "PowerShell(\\(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -eq 'Dhcp' -or $_.InterfaceAlias -match 'Wi-Fi|Ethernet' }\\) | Select-Object IPAddress, InterfaceAlias | Format-Table -AutoSize)",
-      "PowerShell(Get-NetTCPConnection *)"
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(git checkout *)",
+      "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:3001/my-jobs\" -TimeoutSec 8 -UseBasicParsing; \"HTTP $\\($r.StatusCode\\)\" } catch { \"HTTP $\\($_.Exception.Response.StatusCode.Value__\\)\" })",
+      "PowerShell(Get-Process *)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri 'http://localhost:4001/jobs' -UseBasicParsing -TimeoutSec 10; Write-Output \"User API /jobs -> $\\($r.StatusCode\\), $\\($r.Content.Length\\) bytes\" } catch { Write-Output \"User API /jobs -> ERR $\\($_.Exception.Message\\)\" })",
+      "Bash(findstr -E \"LISTENING\")",
+      "Bash(findstr -E \":3000 :3001 :4000\")",
+      "Bash(findstr LISTENING)",
+      "Bash(findstr \":300\")",
+      "Skill(run)",
+      "Bash(Get-ChildItem \"C:\\\\Cluade_Workder\\\\WORKDER-main\\\\User\" -Directory)",
+      "Bash(lsof -ti:4001,3001)",
+      "Read(//mnt/c/Cluade_Workder/**)",
+      "Bash(git add *)"
     ]
   }
 }

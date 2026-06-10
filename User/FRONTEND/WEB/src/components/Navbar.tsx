@@ -97,7 +97,7 @@ export default function Navbar() {
 
     const employerNavItems: NavItemType[] = [
         { name: 'หน้าหลัก', icon: <LayoutDashboard className="w-4 h-4" />, href: '/' },
-        { name: 'Workboard', icon: <Briefcase className="w-4 h-4" />, href: '/workboard' },
+        { name: 'หาคนช่วยงาน', icon: <Briefcase className="w-4 h-4" />, href: '/workboard' },
         { name: 'งานของฉัน', icon: <Briefcase className="w-4 h-4" />, href: '/employer/jobs' },
         { name: 'ข้อความ', icon: <MessageSquare className="w-4 h-4" />, href: '/messages' },
     ];

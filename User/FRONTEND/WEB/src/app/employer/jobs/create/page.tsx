@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Briefcase, ImagePlus, X, Loader2, CheckCircle2, MapPin } from 'lucide-react';
+import { ArrowLeft, Briefcase, ImagePlus, X, Loader2, CheckCircle2, MapPin, ShieldAlert, ArrowRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import api from '../../../../lib/api';
 import { getAuthSession } from '../../../../features/auth/lib/auth';
@@ -44,6 +44,7 @@ export default function CreateJobPage() {
     const [error, setError] = useState('');
     const [location, setLocation] = useState<LatLng | null>(null);
     const [images, setImages] = useState<[ImageSlot, ImageSlot, ImageSlot]>([null, null, null]);
+    const [verifyState, setVerifyState] = useState<'loading' | 'ok' | 'blocked'>('loading');
     const fileRef0 = useRef<HTMLInputElement>(null);
     const fileRef1 = useRef<HTMLInputElement>(null);
     const fileRef2 = useRef<HTMLInputElement>(null);
@@ -56,6 +57,27 @@ export default function CreateJobPage() {
         payAmount: '',
         description: '',
     });
+
+    useEffect(() => {
+        const session = getAuthSession();
+        if (!session) {
+            router.push('/login');
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            let completed = session.profileCompleted;
+            try {
+                const { data } = await api.get(`/users/${session.userId}`);
+                completed = !!data?.profileCompleted;
+            } catch {
+                /* fall back to session flag */
+            }
+            if (cancelled) return;
+            setVerifyState(completed ? 'ok' : 'blocked');
+        })();
+        return () => { cancelled = true; };
+    }, [router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -137,6 +159,13 @@ export default function CreateJobPage() {
                     </div>
                 </div>
 
+                {verifyState === 'loading' && (
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 flex items-center justify-center text-slate-500 text-sm gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> กำลังตรวจสอบสถานะบัญชี...
+                    </div>
+                )}
+
+                {verifyState === 'ok' && (
                 <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
 
                     {/* Job Title */}
@@ -297,7 +326,56 @@ export default function CreateJobPage() {
                         )}
                     </button>
                 </form>
+                )}
             </div>
+
+            {verifyState === 'blocked' && (
+                <div
+                    className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm"
+                    onClick={(e) => { if (e.target === e.currentTarget) router.back(); }}
+                >
+                    <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+                        <div className="px-6 pt-6 pb-4 bg-gradient-to-br from-amber-50 to-orange-50 border-b border-amber-100 relative">
+                            <button
+                                onClick={() => router.back()}
+                                className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-white/70 transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
+                            <div className="flex items-center gap-3">
+                                <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                                    <ShieldAlert className="h-6 w-6 text-amber-600" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-900">ยังไม่สามารถโพสต์งานได้</h2>
+                                    <p className="text-xs text-slate-600 mt-0.5">ต้องยืนยันตัวตนก่อนจึงจะโพสต์งานได้</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="px-6 py-5 space-y-4">
+                            <p className="text-sm text-slate-600 leading-relaxed bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
+                                กรุณายืนยันตัวตน (KYC) ให้เสร็จสิ้นก่อน เพื่อความปลอดภัยของผู้สมัครงาน
+                            </p>
+                            <div className="flex gap-3 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => router.back()}
+                                    className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                                >
+                                    ย้อนกลับ
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => router.push('/profile')}
+                                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition-colors"
+                                >
+                                    <ShieldAlert size={15} /> ไปยืนยันตัวตน <ArrowRight size={14} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

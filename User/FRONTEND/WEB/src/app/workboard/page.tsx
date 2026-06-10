@@ -740,17 +740,15 @@ function JobBoard({ session, initialSearch = '', workerBusy = false, activeJobId
     const [applyModalJob, setApplyModalJob] = useState<Job | null>(null);
 
     const isEmployer = session?.role === 'employer';
-    const isWorker = session && !isEmployer;
 
     useEffect(() => {
-        const url = isEmployer ? `/jobs?postedById=${session!.userId}` : '/jobs';
-        api.get(url)
-            .then(({ data }) => setJobs(Array.isArray(data) ? (isEmployer ? data.filter((j: Job) => j.status !== 'completed') : data.filter((j: Job) => j.status === 'open')) : []))
+        api.get('/jobs')
+            .then(({ data }) => setJobs(Array.isArray(data) ? data.filter((j: Job) => j.status === 'open') : []))
             .catch(() => setJobs([]))
             .finally(() => setLoading(false));
 
         // Pre-populate applied job IDs so "สมัครแล้ว" shows immediately after refresh
-        if (isWorker && session) {
+        if (session) {
             api.get(`/applications/worker/${session.userId}`)
                 .then(({ data }) => {
                     if (Array.isArray(data)) {
@@ -812,7 +810,7 @@ function JobBoard({ session, initialSearch = '', workerBusy = false, activeJobId
     return (
         <div>
             {/* Worker-busy banner */}
-            {isWorker && workerBusy && (
+            {workerBusy && (
                 <div className="mb-5 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
                     <div className="h-9 w-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
                         <Briefcase className="h-5 w-5 text-amber-600" />
@@ -912,7 +910,7 @@ function JobBoard({ session, initialSearch = '', workerBusy = false, activeJobId
                                                 {label}
                                             </span>
                                         </div>
-                                        {isEmployer && (
+                                        {isOwnJob && (
                                             <span className={`text-[10px] font-semibold mb-1 ${isOpen ? 'text-green-600' : 'text-slate-400'}`}>
                                                 ● {isOpen ? 'เปิดรับ' : 'ปิดรับ'}
                                             </span>
@@ -922,7 +920,7 @@ function JobBoard({ session, initialSearch = '', workerBusy = false, activeJobId
                                         )}
                                         <p className="text-lg font-bold text-blue-600 mt-auto mb-3">{job.payAmount.toLocaleString()}฿</p>
 
-                                        {isEmployer ? (
+                                        {isOwnJob ? (
                                             <div className="flex gap-2 flex-wrap">
                                                 <Link href={`/workboard/${job.id}`} className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
                                                     <Eye size={11} /> ดู
@@ -934,15 +932,6 @@ function JobBoard({ session, initialSearch = '', workerBusy = false, activeJobId
                                                 </button>
                                                 <Link href={`/employer/candidates?jobId=${job.id}`} className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
                                                     <Users size={11} /> ผู้สมัคร
-                                                </Link>
-                                            </div>
-                                        ) : isOwnJob ? (
-                                            <div className="flex gap-2">
-                                                <Link href={`/workboard/${job.id}`} className="flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
-                                                    <Eye size={13} /> ดูรายละเอียด
-                                                </Link>
-                                                <Link href={`/employer/candidates?jobId=${job.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-sm font-bold py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                                                    <Users size={14} /> งานของคุณ
                                                 </Link>
                                             </div>
                                         ) : (
@@ -1001,7 +990,7 @@ function WorkboardContent() {
         const s = getAuthSession();
         setSession(s);
         // Fetch fresh workerStatus from the server (localStorage is stale for this)
-        if (s && s.role !== 'employer' && s.accessToken) {
+        if (s && s.accessToken) {
             api.get('/auth/me')
                 .then(({ data }) => {
                     setWorkerBusy(data.workerStatus === 'WORKING');
@@ -1012,6 +1001,8 @@ function WorkboardContent() {
     }, []);
 
     const resolvedSession = session === 'loading' ? null : session;
+    const isEmployer = resolvedSession?.role === 'employer';
+    const activeTab: Tab = isEmployer ? 'skills' : tab;
 
     return (
         <>
@@ -1021,29 +1012,35 @@ function WorkboardContent() {
 
                     {/* Page header */}
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-slate-900">Workboard</h1>
-                        <p className="text-slate-500 text-sm mt-1">ประกาศงานและโปรไฟล์แรงงานทั้งหมด</p>
+                        <h1 className="text-2xl font-bold text-slate-900">
+                            {isEmployer ? 'หาคนช่วยงาน' : 'Workboard'}
+                        </h1>
+                        <p className="text-slate-500 text-sm mt-1">
+                            {isEmployer ? 'ค้นหาแรงงานที่มีทักษะตรงกับงานของคุณ' : 'ประกาศงานและโปรไฟล์แรงงานทั้งหมด'}
+                        </p>
                     </div>
 
-                    {/* Tabs */}
-                    <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit mb-6">
-                        <button
-                            onClick={() => setTab('jobs')}
-                            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'jobs' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
-                        >
-                            <Briefcase size={15} /> ประกาศงาน
-                        </button>
-                        <button
-                            onClick={() => setTab('skills')}
-                            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'skills' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
-                        >
-                            <Wrench size={15} /> แรงงาน / ทักษะ
-                        </button>
-                    </div>
+                    {/* Tabs — hidden for employers (skills-only view) */}
+                    {!isEmployer && (
+                        <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit mb-6">
+                            <button
+                                onClick={() => setTab('jobs')}
+                                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'jobs' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                            >
+                                <Briefcase size={15} /> ประกาศงาน
+                            </button>
+                            <button
+                                onClick={() => setTab('skills')}
+                                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'skills' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                            >
+                                <Wrench size={15} /> แรงงาน / ทักษะ
+                            </button>
+                        </div>
+                    )}
 
                     {session === 'loading' ? (
                         <div className="flex justify-center pt-20"><Loader2 className="h-8 w-8 animate-spin text-blue-500" /></div>
-                    ) : tab === 'jobs' ? (
+                    ) : activeTab === 'jobs' ? (
                         <JobBoard session={resolvedSession} initialSearch={initialSearch} workerBusy={workerBusy} activeJobId={activeJobId} />
                     ) : (
                         <SkillBoard session={resolvedSession} />

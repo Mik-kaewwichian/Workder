@@ -131,11 +131,11 @@ export default function LoginPage() {
                                 <Image src="/images/workderLogo.png" alt="WORKDER" fill className="object-contain" />
                             </div>
                             <span className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600">
-                                WORKDER
+                            Workder
                             </span>
                         </div>
                     </Link>
-                    <h1 className="text-2xl font-bold text-slate-900">ยินดีต้อนรับกลับมา! 👋</h1>
+                    <h1 className="text-2xl font-bold text-slate-900">ลงชื่อเข้าใช้งาน</h1>
                     <p className="text-slate-500 mt-2">เข้าสู่ระบบเพื่อจัดการงานและโอกาสของคุณ</p>
                 </div>
 

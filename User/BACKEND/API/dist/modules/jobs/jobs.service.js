@@ -45,6 +45,20 @@ let JobsService = class JobsService {
         });
     }
     async createJob(data) {
+        const posterId = data.postedBy?.connect?.id;
+        if (!posterId) {
+            throw new common_1.BadRequestException('postedBy.connect.id is required');
+        }
+        const poster = await this.prisma.user.findUnique({
+            where: { id: posterId },
+            select: { profileCompleted: true },
+        });
+        if (!poster) {
+            throw new common_1.BadRequestException('ไม่พบบัญชีผู้ใช้');
+        }
+        if (!poster.profileCompleted) {
+            throw new common_1.ForbiddenException('กรุณายืนยันตัวตน (KYC) ให้เสร็จก่อนโพสต์งาน');
+        }
         return this.prisma.job.create({
             data,
         });

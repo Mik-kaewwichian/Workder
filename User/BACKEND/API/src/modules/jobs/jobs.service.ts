@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { Job, Prisma } from '@workder/user-db';
 
@@ -44,6 +44,20 @@ export class JobsService {
     }
 
     async createJob(data: Prisma.JobCreateInput): Promise<Job> {
+        const posterId = data.postedBy?.connect?.id;
+        if (!posterId) {
+            throw new BadRequestException('postedBy.connect.id is required');
+        }
+        const poster = await this.prisma.user.findUnique({
+            where: { id: posterId },
+            select: { profileCompleted: true },
+        });
+        if (!poster) {
+            throw new BadRequestException('ไม่พบบัญชีผู้ใช้');
+        }
+        if (!poster.profileCompleted) {
+            throw new ForbiddenException('กรุณายืนยันตัวตน (KYC) ให้เสร็จก่อนโพสต์งาน');
+        }
         return this.prisma.job.create({
             data,
         });

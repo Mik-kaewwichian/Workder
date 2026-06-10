@@ -6,9 +6,12 @@ import Link from 'next/link';
 import {
     UserRound, MapPin, Briefcase, ShieldCheck,
     Calendar, CheckCircle2, Loader2, Edit2, X, Save, Camera, Star,
+    TrendingUp, Award, Coins,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { getAuthSession, setAuthSession, type AuthSession } from '../../features/auth/lib/auth';
+import { listEscrows, type Escrow } from '../../features/payments/lib/escrow-api';
+import { formatThb } from '../../features/payments/lib/wallet-api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -378,6 +381,161 @@ function AvatarUpload({
     );
 }
 
+// ─── Work History ─────────────────────────────────────────────────────────────
+
+type HistoryTab = 'worker' | 'employer';
+
+function WorkHistory({ userId }: { userId: number }) {
+    const [escrows, setEscrows] = useState<Escrow[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [tab, setTab] = useState<HistoryTab>('worker');
+
+    useEffect(() => {
+        listEscrows()
+            .then((list) => setEscrows(list.filter((e) => e.status === 'RELEASED')))
+            .catch(() => setEscrows([]))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const asWorker = escrows.filter((e) => e.workerId === userId);
+    const asEmployer = escrows.filter((e) => e.employerId === userId);
+
+    const workerTotal = asWorker.reduce((s, e) => s + (e.amount - e.feeAmount), 0);
+    const employerTotal = asEmployer.reduce((s, e) => s + e.amount, 0);
+
+    const displayName = (u?: { firstName?: string | null; lastName?: string | null } | null) =>
+        [u?.firstName, u?.lastName].filter(Boolean).join(' ') || 'ไม่ระบุชื่อ';
+
+    const items = tab === 'worker' ? asWorker : asEmployer;
+
+    return (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            {/* Header */}
+            <div className="px-5 pt-5 pb-3">
+                <h2 className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-4">
+                    <TrendingUp size={15} className="text-blue-500" /> ประวัติการทำงาน
+                </h2>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+                        <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">งานที่รับทำเสร็จ</p>
+                        <div className="flex items-end gap-1.5">
+                            <span className="text-2xl font-bold text-blue-700">{asWorker.length}</span>
+                            <span className="text-xs text-blue-500 mb-0.5">งาน</span>
+                        </div>
+                        {asWorker.length > 0 && (
+                            <p className="text-xs text-blue-500 mt-0.5 flex items-center gap-1">
+                                <Coins size={11} /> รวม {formatThb(workerTotal)}
+                            </p>
+                        )}
+                    </div>
+                    <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">งานที่จ้างเสร็จ</p>
+                        <div className="flex items-end gap-1.5">
+                            <span className="text-2xl font-bold text-emerald-700">{asEmployer.length}</span>
+                            <span className="text-xs text-emerald-500 mb-0.5">งาน</span>
+                        </div>
+                        {asEmployer.length > 0 && (
+                            <p className="text-xs text-emerald-500 mt-0.5 flex items-center gap-1">
+                                <Coins size={11} /> รวม {formatThb(employerTotal)}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex rounded-xl bg-slate-100 p-1 gap-1">
+                    {([
+                        { key: 'worker', label: `งานที่รับทำ (${asWorker.length})` },
+                        { key: 'employer', label: `งานที่จ้าง (${asEmployer.length})` },
+                    ] as { key: HistoryTab; label: string }[]).map(({ key, label }) => (
+                        <button
+                            key={key}
+                            onClick={() => setTab(key)}
+                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
+                                tab === key
+                                    ? 'bg-white text-slate-800 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* List */}
+            <div className="px-5 pb-5">
+                {loading ? (
+                    <div className="py-8 flex justify-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
+                    </div>
+                ) : items.length === 0 ? (
+                    <div className="py-8 text-center">
+                        <Award className="h-8 w-8 text-slate-200 mx-auto mb-2" />
+                        <p className="text-xs text-slate-400">
+                            {tab === 'worker' ? 'ยังไม่มีงานที่รับทำเสร็จ' : 'ยังไม่มีงานที่จ้างเสร็จ'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="space-y-2 mt-1">
+                        {items.map((e) => {
+                            const other = tab === 'worker'
+                                ? displayName(e.employer)
+                                : displayName(e.worker);
+                            const otherLabel = tab === 'worker' ? 'นายจ้าง' : 'ผู้รับงาน';
+                            const amount = tab === 'worker'
+                                ? e.amount - e.feeAmount
+                                : e.amount;
+                            const date = e.releasedAt
+                                ? new Date(e.releasedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })
+                                : '-';
+
+                            return (
+                                <div
+                                    key={e.id}
+                                    className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
+                                >
+                                    {/* Icon */}
+                                    <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                        tab === 'worker' ? 'bg-blue-100' : 'bg-emerald-100'
+                                    }`}>
+                                        <Briefcase size={15} className={tab === 'worker' ? 'text-blue-600' : 'text-emerald-600'} />
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-slate-800 leading-tight line-clamp-1">
+                                            {e.job.title}
+                                        </p>
+                                        <p className="text-xs text-slate-500 mt-0.5">
+                                            {otherLabel}: {other}
+                                        </p>
+                                        <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                                            <Calendar size={10} /> {date}
+                                        </p>
+                                    </div>
+
+                                    {/* Amount + badge */}
+                                    <div className="text-right shrink-0">
+                                        <p className={`text-sm font-bold ${tab === 'worker' ? 'text-blue-600' : 'text-emerald-600'}`}>
+                                            {tab === 'worker' ? '+' : '-'}{formatThb(amount)}
+                                        </p>
+                                        <span className="inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                                            เสร็จสิ้น
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const formatShortDate = (iso: string) =>
@@ -665,6 +823,11 @@ export default function MyProfilePage() {
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    {/* Work history */}
+                    <div className="mt-4">
+                        <WorkHistory userId={profile.id} />
                     </div>
                 </div>
             </div>

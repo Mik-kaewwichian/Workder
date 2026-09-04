@@ -1,9 +1,6 @@
 {
   "name": "workder-monorepo",
   "private": true,
-  "pnpm": {
-    "onlyBuiltDependencies": ["@nestjs/core", "@prisma/client", "@prisma/engines", "prisma", "sharp"]
-  },
   "scripts": {
     "dev:admin:web": "pnpm --dir Admin/FRONTEND/WEB dev",
     "dev:user:web": "pnpm --dir User/FRONTEND/WEB dev",

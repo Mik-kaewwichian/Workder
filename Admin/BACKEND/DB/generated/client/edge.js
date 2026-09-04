@@ -176,7 +176,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Cluade_Workder\\WORKDER-main\\Admin\\BACKEND\\DB\\generated\\client",
+      "value": "C:\\Workder old version\\Workder\\Admin\\BACKEND\\DB\\generated\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -190,7 +190,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Cluade_Workder\\WORKDER-main\\Admin\\BACKEND\\DB\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Workder old version\\Workder\\Admin\\BACKEND\\DB\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

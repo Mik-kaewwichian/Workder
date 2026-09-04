@@ -2,9 +2,15 @@ packages:
   - "Admin/FRONTEND/WEB"
   - "Admin/BACKEND/API"
   - "Admin/BACKEND/DB"
-  - "Admin/WORKER"
+  - "Admin/BACKEND/WORKER"
   - "User/FRONTEND/WEB"
   - "User/FRONTEND/MOBILE"
   - "User/BACKEND/API"
   - "User/BACKEND/DB"
   - "User/BACKEND/WORKER"
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  prisma: true
+  sharp: true
